@@ -87,6 +87,10 @@ table.res td,table.res th{border-bottom:1px solid var(--line);padding:6px 8px;te
 .cv .go{font-size:22px;min-height:56px;padding:10px 34px;border-radius:14px;--ck:var(--dyn)}
 .cv input{font:700 18px var(--fb);min-height:46px;padding:8px 14px;border-radius:10px;border:2px solid var(--line);background:var(--surface);color:var(--ink);width:min(280px,100%);text-align:center}
 body.cover header.top{display:none}
+.spk{min-height:40px;padding:4px 14px;border-radius:99px;font-size:15px;gap:8px;color:var(--ck,var(--dyn));font-family:var(--fb);text-transform:none;letter-spacing:0}
+.spk svg{width:20px;height:20px;fill:currentColor}
+.spk.on{color:var(--on)}
+.hrow{display:flex;justify-content:space-between;align-items:center;gap:8px}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -120,6 +124,19 @@ function btn(label,fn,parent,cls){const b=H('button',{type:'button',class:cls||'
 function segmented(parent,label,opts,val,fn){const w=H('div',{class:'grp'},'',parent);if(label)H('label',{},label,w);const bs=[];
  opts.forEach(([v,t])=>{const b=btn(t,()=>{bs.forEach(x=>x.classList.remove('on'));b.classList.add('on');fn(v)},w);if(v===val)b.classList.add('on');bs.push(b)});return w}
 const EXPS=[];
+const TTS='speechSynthesis' in window&&typeof SpeechSynthesisUtterance!=='undefined';let spkBtn=null,spkId=0;
+function stopSpeak(){spkId++;if(TTS)try{speechSynthesis.cancel()}catch(e){}if(spkBtn){spkBtn.classList.remove('on');spkBtn.setAttribute('aria-pressed','false');spkBtn=null}}
+function say(text,b){if(!TTS)return;if(spkBtn===b&&b){stopSpeak();return}stopSpeak();const id=spkId;
+ const vs=speechSynthesis.getVoices(),v=vs.find(x=>/^fr[-_]CA/i.test(x.lang))||vs.find(x=>/^fr/i.test(x.lang))||null;
+ const parts=String(text).replace(/\s+/g,' ').split(/(?<=[.!?:;])\s+/).filter(x=>x.trim());
+ if(b){b.classList.add('on');b.setAttribute('aria-pressed','true');spkBtn=b}
+ parts.forEach((p,i)=>{const u=new SpeechSynthesisUtterance(p);u.lang=v?v.lang:'fr-CA';if(v)u.voice=v;u.rate=.9;
+  if(i===parts.length-1)u.onend=u.onerror=()=>{if(spkId===id&&spkBtn===b&&b){b.classList.remove('on');b.setAttribute('aria-pressed','false');spkBtn=null}};
+  speechSynthesis.speak(u)})}
+function spk(parent,getText,label){if(!TTS)return null;
+ const b=H('button',{type:'button',class:'spk','aria-label':label||'\u00c9couter','aria-pressed':'false'},'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 4V5L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>\u00c9couter',parent);
+ b.addEventListener('click',()=>say(typeof getText==='function'?getText():getText,b));return b}
+function hspk(block,getText){const h=block.querySelector('h3');if(!h||!TTS)return;h.classList.add('hrow');spk(h,getText)}
 /* ---- usines de dessin ---- */
 function makeSweater(parent,x,y){
  const g=S('g',{transform:'translate('+x+','+y+')'},parent);
@@ -149,7 +166,7 @@ function makeBalloon(parent){
  return{g:g,maxT:n,setPos:(x,y)=>place(g,x,y),update:update}}
 /* ---- contexte d'une expérience ---- */
 let destroyers=[];
-function cleanup(){destroyers.forEach(f=>{try{f()}catch(e){}});destroyers=[]}
+function cleanup(){stopSpeak();destroyers.forEach(f=>{try{f()}catch(e){}});destroyers=[]}
 function makeCtx(stageBox,ctrlBox,statusBox,title){
  const c={ctrl:ctrlBox,status(t,k){statusBox.textContent=t;statusBox.className='status '+(k||'')},
  svg(){const s=S('svg',{viewBox:'0 0 800 500',role:'img','aria-label':title});s.setAttribute('class','sim');stageBox.appendChild(s);S('rect',{class:'bg',width:800,height:500},s);return s},
@@ -440,20 +457,20 @@ function mountTri(ctx){
  const C=[['Un ballon frotté colle au mur.',1,'Les charges restent sur le ballon : statique.'],['Une lampe de poche allumée.',0,'Les électrons circulent en continu dans un circuit fermé : dynamique.'],['Tu reçois un petit choc en touchant la poignée de porte.',1,'Une décharge de charges accumulées : statique.'],['La foudre.',1,'Une décharge géante d’électricité statique.'],['Une lampe de chevet branchée et allumée.',0,'Le courant circule dans le circuit : dynamique.'],['Tes cheveux se dressent quand tu enlèves ton bonnet.',1,'Le frottement a chargé tes cheveux : statique.'],['Une télécommande qui marche avec des piles.',0,'Les piles font circuler le courant : dynamique.'],['Des vêtements collent ensemble à la sortie de la sécheuse.',1,'Le frottement a chargé le tissu : statique.'],['Une règle frottée attire des bouts de papier.',1,'Charge immobile qui attire : statique.'],['Le courant dans les fils de la maison.',0,'Un courant qui circule : dynamique.']];
  const order=shuffle(C.map((_,i)=>i),+new Date()%1000);let i=0,sc=0;
  function next(){box.innerHTML='';if(i>=order.length){ctx.done(0);if(sc>=8)ctx.done(1);if(sc===order.length)ctx.done(2);H('div',{class:'q'},'Score : '+sc+' / '+order.length,box);btn('Rejouer',()=>{i=0;sc=0;next()},box,'pri');return}
-  const c=C[order[i]];H('div',{style:'color:var(--muted);font-weight:700'},'Situation '+(i+1)+' sur '+order.length,box);H('div',{class:'q'},c[0],box);
+  const c=C[order[i]];H('div',{style:'color:var(--muted);font-weight:700'},'Situation '+(i+1)+' sur '+order.length,box);H('div',{class:'q'},c[0],box);spk(box,()=>c[0]+' \u00c9lectricit\u00e9 statique ou dynamique ?');
   const o=H('div',{class:'opts'},'',box);const fb=H('div',{},'',box);
   [['Électricité statique',1],['Électricité dynamique',0]].forEach(x=>{const b=btn(x[0],()=>{[...o.children].forEach(y=>y.disabled=true);const ok=x[1]===c[1];if(ok)sc++;b.classList.add(ok?'right':'wrong');
-   fb.innerHTML='<p><b>'+(ok?'Bravo !':'Pas tout à fait.')+'</b> '+c[2]+'</p>';btn(i+1<order.length?'Suivant':'Voir mon score',()=>{i++;next()},fb,'pri')},o)})}
+   fb.innerHTML='<p><b>'+(ok?'Bravo !':'Pas tout à fait.')+'</b> '+c[2]+'</p>';spk(fb,()=>fb.querySelector('p').textContent);btn(i+1<order.length?'Suivant':'Voir mon score',()=>{i++;next()},fb,'pri')},o)})}
  next();ctx.status('Statique : les charges restent en place. Dynamique : les électrons circulent.')}
 function mountQuiz(ctx){
  const box=H('div',{class:'qbox'},'',ctx.box());
  const Q=[['Quand on frotte un ballon sur de la laine, qu’est-ce qui se déplace ?',['Les électrons','Les protons','Les atomes entiers'],'Seuls les électrons passent d’un objet à l’autre.'],['Le ballon qui a gagné des électrons est...',['négatif','positif','neutre'],'Il a des charges négatives en trop.'],['Deux charges de même signe...',['se repoussent','s’attirent','ne font rien'],'Pareil repousse, contraire attire.'],['Pour qu’une ampoule brille, le circuit doit être...',['fermé','ouvert','coupé en deux'],'Les électrons ont besoin d’une boucle complète.'],['Un interrupteur sert à...',['ouvrir et fermer le circuit','fabriquer des électrons','charger la pile'],'Ouvert : le courant s’arrête. Fermé : il passe.'],['Lequel est un isolant ?',['La gomme','La pièce de monnaie','Le papier d’aluminium'],'La gomme ne laisse pas passer les électrons.'],['En classe, quelle source d’électricité utilise-t-on ?',['Des piles','La prise murale','Les deux'],'Piles seulement, jamais de prise murale.'],['Dans un circuit, les électrons partent de la borne...',['− de la pile','+ de la pile','de l’ampoule'],'Ils quittent le −, traversent l’ampoule et reviennent au +.']];
  let i=0,sc=0;
  function next(){box.innerHTML='';if(i>=Q.length){ctx.done(0);if(sc>=6)ctx.done(1);if(sc===Q.length)ctx.done(2);H('div',{class:'q'},'Score : '+sc+' / '+Q.length,box);btn('Recommencer',()=>{i=0;sc=0;next()},box,'pri');return}
-  const q=Q[i];H('div',{style:'color:var(--muted);font-weight:700'},'Question '+(i+1)+' sur '+Q.length,box);H('div',{class:'q'},q[0],box);
+  const q=Q[i];H('div',{style:'color:var(--muted);font-weight:700'},'Question '+(i+1)+' sur '+Q.length,box);H('div',{class:'q'},q[0],box);spk(box,()=>q[0]+' R\u00e9ponses possibles. '+[...o.children].map(x=>x.textContent).join('. '));
   const o=H('div',{class:'opts'},'',box),fb=H('div',{},'',box);
   shuffle(q[1].map((t,k)=>[t,k]),i+3).forEach(x=>{const b=btn(x[0],()=>{[...o.children].forEach(y=>{y.disabled=true});const ok=x[1]===0;if(ok)sc++;b.classList.add(ok?'right':'wrong');
-   fb.innerHTML='<p><b>'+(ok?'Bravo !':'Pas tout à fait.')+'</b> '+q[2]+'</p>';btn(i+1<Q.length?'Suivant':'Voir mon score',()=>{i++;next()},fb,'pri')},o)})}
+   fb.innerHTML='<p><b>'+(ok?'Bravo !':'Pas tout à fait.')+'</b> '+q[2]+'</p>';spk(fb,()=>fb.querySelector('p').textContent);btn(i+1<Q.length?'Suivant':'Voir mon score',()=>{i++;next()},fb,'pri')},o)})}
  next();ctx.status('Une seule bonne réponse par question.')}
 /* ---- Jeu : panne de courant ---- */
 function mountPanne(ctx){
@@ -479,10 +496,10 @@ function mountPanne(ctx){
  function next(){box.innerHTML='';
   if(i>=order.length){ctx.done(0);if(sc>=5)ctx.done(1);if(sc===order.length)ctx.done(2);H('div',{class:'q'},'Score : '+sc+' / '+order.length,box);btn('Rejouer',()=>{i=0;sc=0;next()},box,'pri');return}
   const c=SC[order[i]];H('div',{style:'color:var(--muted);font-weight:700'},'Circuit '+(i+1)+' sur '+order.length,box);
-  H('div',{class:'q'},'Que se passe-t-il dans ce circuit ?',box);draw(c[0],box);
+  H('div',{class:'q'},'Que se passe-t-il dans ce circuit ?',box);spk(box,()=>'Que se passe-t-il dans ce circuit ? R\u00e9ponses possibles. '+[...o.children].map(x=>x.textContent).join('. '));draw(c[0],box);
   const o=H('div',{class:'opts'},'',box),fb=H('div',{},'',box);
   shuffle(OP.map((t,k)=>[t,k]),i+5).forEach(x=>{const b=btn(x[0],()=>{[...o.children].forEach(y=>y.disabled=true);const ok=x[1]===c[0];if(ok)sc++;b.classList.add(ok?'right':'wrong');
-   fb.innerHTML='<p><b>'+(ok?'Bravo !':'Pas tout à fait.')+'</b> '+c[1]+'</p>';btn(i+1<order.length?'Suivant':'Voir mon score',()=>{i++;next()},fb,'pri')},o)})}
+   fb.innerHTML='<p><b>'+(ok?'Bravo !':'Pas tout à fait.')+'</b> '+c[1]+'</p>';spk(fb,()=>fb.querySelector('p').textContent);btn(i+1<order.length?'Suivant':'Voir mon score',()=>{i++;next()},fb,'pri')},o)})}
  next();ctx.status('Observe le circuit et trouve la cause de la panne.')}
 /* ---- Jeu : course aux électrons ---- */
 function mountCourse(ctx){
@@ -607,27 +624,28 @@ function home(){
  const tot=EXPS.reduce((n,e)=>n+MS[e.id].length,0),got=EXPS.reduce((n,e)=>n+stars(e.id),0);
  app.innerHTML='<h1>'+(store.get('labo-name','')?'Bonjour '+store.get('labo-name','').replace(/[<>&"]/g,'')+' !':'Labo de l\u2019\u00e9lectricit\u00e9')+'</h1><p class="lead">Choisis un centre, manipule et r\u00e9ussis les missions. Tout se fait sur ton Chromebook, avec la souris ou le doigt.</p><p style="font:600 22px var(--fd);margin:14px 0 0">\u2605 '+got+' / '+tot+' missions r\u00e9ussies</p>';
  const intro={stat:'Les charges restent en place. Frotte, approche, observe.',dyn:'Les électrons circulent dans un circuit fermé.',bon:'Pour aller plus loin.'};
- ['stat','dyn','bon'].forEach(k=>{H('h2',{},KIND[k][0],app);H('p',{class:'sect-note'},intro[k],app);const g=H('div',{class:'grid'},'',app);
+ ['stat','dyn','bon'].forEach(k=>{H('h2',{},KIND[k][0],app);H('p',{class:'sect-note'},intro[k],app);spk(app,()=>KIND[k][0]+'. '+EXPS.filter(e=>e.kind===k).map(e=>e.num+'. '+e.title+'. '+e.sub).join(' '),'\u00c9couter la liste');const g=H('div',{class:'grid'},'',app);
   EXPS.filter(e=>e.kind===k).forEach(e=>{const a=H('a',{class:'card '+KIND[k][1],href:'#'+e.id},'<div class="th"><svg viewBox="0 0 120 72" aria-hidden="true">'+T[e.id]+'</svg>'+(stars(e.id)?'<span class="done">\u2605 '+stars(e.id)+'/'+MS[e.id].length+'</span>':'')+'</div><div class="body"><div class="num">'+e.num+'</div><h3>'+e.title+'</h3><p>'+e.sub+'</p></div>',g)})});
  H('div',{class:'safety'},'<b>Sécurité.</b> Dans la vraie vie, on fait les circuits avec des piles seulement, jamais avec une prise murale.',app)}
 function page(e){
  const i=EXPS.indexOf(e),k=KIND[e.kind];
  app.innerHTML='';const sec=H('section',{class:'exp '+k[1]},'',app);
  H('div',{class:'crumb'},'<a href="#accueil">← Tous les centres</a><span class="tag">'+e.num+' · '+k[0]+'</span>',sec);
- H('h1',{},e.title,sec);H('p',{class:'lead'},e.sub,sec);
+ H('h1',{},e.title,sec);H('p',{class:'lead'},e.sub,sec);spk(sec,()=>e.title+'. '+e.sub);
  const gr=H('div',{class:'expgrid'},'',sec),left=H('div',{},'',gr),stage=H('div',{class:'stage'},'',left),ctrl=H('div',{class:'ctrls'},'',left),st=H('div',{class:'status'},'',left);
- const ctx=makeCtx(stage,ctrl,st,e.title);e.mount(ctx);
+ const ctx=makeCtx(stage,ctrl,st,e.title);e.mount(ctx);spk(left,()=>st.textContent,'\u00c9couter le message');
  const p=H('aside',{class:'panel'},'',gr);
- if(e.mat.length)H('div',{},'<h3>Matériel</h3><ul>'+e.mat.map(x=>'<li>'+x+'</li>').join('')+'</ul>',p);
- if(e.safe)H('div',{class:'safe'},'Piles seulement, jamais de prise murale.',p);
- H('div',{},'<h3>À faire</h3><ol>'+e.steps.map(x=>'<li>'+x+'</li>').join('')+'</ol>',p);
+ if(e.mat.length)hspk(H('div',{},'<h3>Mat\u00e9riel</h3><ul>'+e.mat.map(x=>'<li>'+x+'</li>').join('')+'</ul>',p),()=>'Mat\u00e9riel. '+e.mat.join('. '));
+ if(e.safe){const sf=H('div',{class:'safe'},'Piles seulement, jamais de prise murale.',p)}
+ hspk(H('div',{},'<h3>\u00c0 faire</h3><ol>'+e.steps.map(x=>'<li>'+x+'</li>').join('')+'</ol>',p),()=>'\u00c0 faire. '+e.steps.map((x,i)=>'\u00c9tape '+(i+1)+'. '+x).join(' ')+(e.safe?' Piles seulement, jamais de prise murale.':''));
 
  const ms=MS[e.id]||[],mw=H('div',{},'<h3>Missions</h3>',p),ml=H('ul',{style:'list-style:none;padding:0;display:grid;gap:6px'},'',mw),lis=[];
  ms.forEach(t=>{lis.push(H('li',{style:'display:flex;gap:8px'},'<span style="font-size:22px;line-height:1.1">☆</span><span>'+t+'</span>',ml))});
  const cnt=H('div',{style:'font-weight:700;color:var(--ck);margin-top:6px'},'',mw);
  function paint(){const m=mget(e.id);lis.forEach((li,i)=>{li.firstChild.textContent=m[i]?'★':'☆';li.style.fontWeight=m[i]?'700':'400';li.style.color=m[i]?'var(--ok)':'var(--ink)'});const n=m.slice(0,ms.length).filter(Boolean).length;cnt.textContent=n===ms.length?'Bravo, toutes les missions sont réussies !':n+' / '+ms.length+' missions réussies'}
+ hspk(mw,()=>'Missions. '+ms.map((x,i)=>'Mission '+(i+1)+'. '+x).join(' '));
  ctx.done=i=>{const m=mget(e.id);if(!m[i]){m[i]=1;mset(e.id,m);paint()}};paint();
- H('details',{},'<summary style="cursor:pointer;font-weight:700;color:var(--ck);min-height:32px">Pour comprendre</summary><h3>Ce qui s’est passé</h3><p>'+e.why+'</p><h3>À retenir</h3><ul>'+e.keep.map(x=>'<li>'+x+'</li>').join('')+'</ul>',p);
+ const dt=H('details',{},'<summary style="cursor:pointer;font-weight:700;color:var(--ck);min-height:32px">Pour comprendre</summary><h3>Ce qui s’est passé</h3><p>'+e.why+'</p><h3>À retenir</h3><ul>'+e.keep.map(x=>'<li>'+x+'</li>').join('')+'</ul>',p);
  const nv=H('div',{class:'nav'},'',sec),pr=EXPS[i-1],nx=EXPS[i+1];
  if(pr)H('a',{class:'btn',href:'#'+pr.id},'← '+pr.title,nv);else H('span',{},'',nv);
  if(nx)H('a',{class:'btn pri',href:'#'+nx.id},nx.title+' →',nv)}
@@ -636,7 +654,7 @@ function cover(){
  app.innerHTML='<section class="cv"><svg class="art" viewBox="0 0 560 260" role="img" aria-label="Un ballon, une ampoule, une pile et un \u00e9clair"><circle cx="280" cy="110" r="62" fill="#ffe066" opacity=".35"/><circle cx="280" cy="108" r="44" fill="#ffe066" stroke="#9aa5b1" stroke-width="3"/><path d="M266 150 270 120Q280 100 290 120L294 150" fill="none" stroke="#6b7280" stroke-width="3"/><rect x="262" y="150" width="36" height="28" rx="4" fill="#aab3bd"/><path d="M268 178h24l-5 10h-14z" fill="#5c677d"/><ellipse cx="110" cy="100" rx="42" ry="54" fill="#e63946"/><ellipse cx="96" cy="76" rx="8" ry="14" fill="#fff" opacity=".3"/><path d="M110 154C120 176 102 190 110 214" fill="none" stroke="#7b8499" stroke-width="2"/><path d="M470 30 440 100h26l-12 60 48-80h-28l14-50z" fill="#ffb703"/><rect x="190" y="212" width="180" height="30" rx="8" fill="#343a46"/><rect x="310" y="212" width="60" height="30" rx="8" fill="#e0a526"/><text x="60" y="52" font-size="26" font-weight="800" fill="#2b6cff">\u2212</text><text x="170" y="40" font-size="26" font-weight="800" fill="#e5383b">+</text><text x="400" y="200" font-size="26" font-weight="800" fill="#2b6cff">\u2212</text><text x="150" y="220" font-size="26" font-weight="800" fill="#e5383b">+</text></svg><div><div class="sub">Unit\u00e9 d\u2019\u00e9lectricit\u00e9</div><h1>Labo de l\u2019\u00e9lectricit\u00e9</h1></div><p class="lead" style="margin:0">Frotte, branche, teste et d\u00e9couvre comment fonctionne l\u2019\u00e9lectricit\u00e9, \u00e0 ton rythme.</p><div class="chips"><span class="chip" style="background:var(--stat-soft);color:var(--stat)">3 centres statique</span><span class="chip" style="background:var(--dyn-soft);color:var(--dyn)">3 centres dynamique</span><span class="chip" style="background:var(--bon-soft);color:var(--bon)">Jeux et missions</span></div><label for="nm" style="font-weight:700;color:var(--muted)">Ton pr\u00e9nom (facultatif)</label><input id="nm" type="text" maxlength="30" autocomplete="off" value="">'+'<a class="btn pri go" href="#accueil" id="go">Commencer</a></section>';
  const nmI=document.getElementById('nm');nmI.value=nm;
  const upd=()=>{store.set('labo-name',nmI.value.trim());document.getElementById('go').textContent=nmI.value.trim()?'Commencer, '+nmI.value.trim():'Commencer'};
- nmI.addEventListener('input',upd);upd()}
+ nmI.addEventListener('input',upd);upd();const cvb=spk(document.querySelector('.cv'),()=>'Bienvenue au labo de l\u2019\u00e9lectricit\u00e9. Frotte, branche, teste et d\u00e9couvre comment fonctionne l\u2019\u00e9lectricit\u00e9. Appuie sur le bouton Commencer.','\u00c9couter');if(cvb)document.querySelector('.cv').insertBefore(cvb,document.getElementById('go'))}
 function route(){cleanup();const h=location.hash.slice(1),e=EXPS.find(x=>x.id===h);document.body.classList.toggle('cover',!e&&h!=='accueil');try{e?page(e):(h==='accueil'?home():cover())}catch(err){app.innerHTML='<p>Erreur : '+err.message+'</p>';console.error(err)}window.scrollTo(0,0)}
 window.addEventListener('hashchange',route);
 const tb=document.getElementById('themeBtn'),root=document.documentElement;
