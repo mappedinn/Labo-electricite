@@ -78,12 +78,21 @@ table.res td,table.res th{border-bottom:1px solid var(--line);padding:6px 8px;te
 .qbox .opts button{justify-content:flex-start;text-align:left;font-size:17px}
 .qbox .opts button.right{background:var(--ok);color:var(--on);border-color:var(--ok)}
 .qbox .opts button.wrong{border-color:var(--warn);color:var(--warn)}
+.cv{min-height:calc(100vh - 80px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:18px;padding-block:20px}
+.cv .art{width:min(560px,100%);height:auto;border-radius:24px;background:var(--stage);border:2px solid var(--line)}
+.cv h1{font-size:clamp(36px,7vw,64px)}
+.cv .sub{font:600 clamp(18px,3vw,24px) var(--fd);color:var(--dyn);margin:0}
+.cv .chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.cv .chip{padding:4px 14px;border-radius:99px;font-weight:700;font-size:15px}
+.cv .go{font-size:22px;min-height:56px;padding:10px 34px;border-radius:14px;--ck:var(--dyn)}
+.cv input{font:700 18px var(--fb);min-height:46px;padding:8px 14px;border-radius:10px;border:2px solid var(--line);background:var(--surface);color:var(--ink);width:min(280px,100%);text-align:center}
+body.cover header.top{display:none}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 <div class="wrap">
-<header class="top"><a class="brand" href="#accueil"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#ffb703"/><path d="M18 4 8 18h7l-2 10 11-15h-7z" fill="#14213d"/></svg>Labo de l'électricité</a>
+<header class="top"><a class="brand" href="#debut"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#ffb703"/><path d="M18 4 8 18h7l-2 10 11-15h-7z" fill="#14213d"/></svg>Labo de l'électricité</a>
 <button id="themeBtn" type="button" aria-label="Changer le thème">Thème</button></header>
 <main id="app"></main>
 </div>
@@ -596,7 +605,7 @@ const isDone=id=>(MS[id]||[]).length>0&&stars(id)===MS[id].length;
 Object.assign(MS,{panne:['Termine les 6 circuits','Trouve au moins 5 pannes','Trouve les 6 pannes'],course:['Marque au moins 10 points','Marque au moins 20 points','Marque au moins 28 points'],paires:['Trouve les 8 paires','Termine en 14 coups ou moins','Termine en 10 coups ou moins']});
 function home(){
  const tot=EXPS.reduce((n,e)=>n+MS[e.id].length,0),got=EXPS.reduce((n,e)=>n+stars(e.id),0);
- app.innerHTML='<h1>Labo de l\u2019\u00e9lectricit\u00e9</h1><p class="lead">Choisis un centre, manipule et r\u00e9ussis les missions. Tout se fait sur ton Chromebook, avec la souris ou le doigt.</p><p style="font:600 22px var(--fd);margin:14px 0 0">\u2605 '+got+' / '+tot+' missions r\u00e9ussies</p>';
+ app.innerHTML='<h1>'+(store.get('labo-name','')?'Bonjour '+store.get('labo-name','').replace(/[<>&"]/g,'')+' !':'Labo de l\u2019\u00e9lectricit\u00e9')+'</h1><p class="lead">Choisis un centre, manipule et r\u00e9ussis les missions. Tout se fait sur ton Chromebook, avec la souris ou le doigt.</p><p style="font:600 22px var(--fd);margin:14px 0 0">\u2605 '+got+' / '+tot+' missions r\u00e9ussies</p>';
  const intro={stat:'Les charges restent en place. Frotte, approche, observe.',dyn:'Les électrons circulent dans un circuit fermé.',bon:'Pour aller plus loin.'};
  ['stat','dyn','bon'].forEach(k=>{H('h2',{},KIND[k][0],app);H('p',{class:'sect-note'},intro[k],app);const g=H('div',{class:'grid'},'',app);
   EXPS.filter(e=>e.kind===k).forEach(e=>{const a=H('a',{class:'card '+KIND[k][1],href:'#'+e.id},'<div class="th"><svg viewBox="0 0 120 72" aria-hidden="true">'+T[e.id]+'</svg>'+(stars(e.id)?'<span class="done">\u2605 '+stars(e.id)+'/'+MS[e.id].length+'</span>':'')+'</div><div class="body"><div class="num">'+e.num+'</div><h3>'+e.title+'</h3><p>'+e.sub+'</p></div>',g)})});
@@ -622,7 +631,13 @@ function page(e){
  const nv=H('div',{class:'nav'},'',sec),pr=EXPS[i-1],nx=EXPS[i+1];
  if(pr)H('a',{class:'btn',href:'#'+pr.id},'← '+pr.title,nv);else H('span',{},'',nv);
  if(nx)H('a',{class:'btn pri',href:'#'+nx.id},nx.title+' →',nv)}
-function route(){cleanup();const e=EXPS.find(x=>x.id===location.hash.slice(1));try{e?page(e):home()}catch(err){app.innerHTML='<p>Erreur : '+err.message+'</p>';console.error(err)}window.scrollTo(0,0)}
+function cover(){
+ const nm=store.get('labo-name','');
+ app.innerHTML='<section class="cv"><svg class="art" viewBox="0 0 560 260" role="img" aria-label="Un ballon, une ampoule, une pile et un \u00e9clair"><circle cx="280" cy="110" r="62" fill="#ffe066" opacity=".35"/><circle cx="280" cy="108" r="44" fill="#ffe066" stroke="#9aa5b1" stroke-width="3"/><path d="M266 150 270 120Q280 100 290 120L294 150" fill="none" stroke="#6b7280" stroke-width="3"/><rect x="262" y="150" width="36" height="28" rx="4" fill="#aab3bd"/><path d="M268 178h24l-5 10h-14z" fill="#5c677d"/><ellipse cx="110" cy="100" rx="42" ry="54" fill="#e63946"/><ellipse cx="96" cy="76" rx="8" ry="14" fill="#fff" opacity=".3"/><path d="M110 154C120 176 102 190 110 214" fill="none" stroke="#7b8499" stroke-width="2"/><path d="M470 30 440 100h26l-12 60 48-80h-28l14-50z" fill="#ffb703"/><rect x="190" y="212" width="180" height="30" rx="8" fill="#343a46"/><rect x="310" y="212" width="60" height="30" rx="8" fill="#e0a526"/><text x="60" y="52" font-size="26" font-weight="800" fill="#2b6cff">\u2212</text><text x="170" y="40" font-size="26" font-weight="800" fill="#e5383b">+</text><text x="400" y="200" font-size="26" font-weight="800" fill="#2b6cff">\u2212</text><text x="150" y="220" font-size="26" font-weight="800" fill="#e5383b">+</text></svg><div><div class="sub">Unit\u00e9 d\u2019\u00e9lectricit\u00e9</div><h1>Labo de l\u2019\u00e9lectricit\u00e9</h1></div><p class="lead" style="margin:0">Frotte, branche, teste et d\u00e9couvre comment fonctionne l\u2019\u00e9lectricit\u00e9, \u00e0 ton rythme.</p><div class="chips"><span class="chip" style="background:var(--stat-soft);color:var(--stat)">3 centres statique</span><span class="chip" style="background:var(--dyn-soft);color:var(--dyn)">3 centres dynamique</span><span class="chip" style="background:var(--bon-soft);color:var(--bon)">Jeux et missions</span></div><label for="nm" style="font-weight:700;color:var(--muted)">Ton pr\u00e9nom (facultatif)</label><input id="nm" type="text" maxlength="30" autocomplete="off" value="">'+'<a class="btn pri go" href="#accueil" id="go">Commencer</a></section>';
+ const nmI=document.getElementById('nm');nmI.value=nm;
+ const upd=()=>{store.set('labo-name',nmI.value.trim());document.getElementById('go').textContent=nmI.value.trim()?'Commencer, '+nmI.value.trim():'Commencer'};
+ nmI.addEventListener('input',upd);upd()}
+function route(){cleanup();const h=location.hash.slice(1),e=EXPS.find(x=>x.id===h);document.body.classList.toggle('cover',!e&&h!=='accueil');try{e?page(e):(h==='accueil'?home():cover())}catch(err){app.innerHTML='<p>Erreur : '+err.message+'</p>';console.error(err)}window.scrollTo(0,0)}
 window.addEventListener('hashchange',route);
 const tb=document.getElementById('themeBtn'),root=document.documentElement;
 const th=store.get('labo-theme','');if(th)root.setAttribute('data-theme',th);
