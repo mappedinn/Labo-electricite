@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Labo de l'électricité</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito+Sans:wght@400;700;800&display=swap">
+<style>
+/* Concept : cahier de labo — cartes colorées par famille (statique orange, dynamique bleu, bonus violet), grande scène de simulation + panneau de notes */
+:root{--bg:#eef3f9;--surface:#fff;--ink:#14213d;--muted:#566179;--line:#d5deea;--stat:#c2410c;--stat-soft:#fdeadd;--dyn:#1c5fd0;--dyn-soft:#e3edfc;--bon:#6741d9;--bon-soft:#ebe5fb;--ok:#1f9d55;--warn:#c2410c;--on:#fff;--stage:#eaf2fc;--wall:#d9d2c7;--wallline:#c4bcae;
+--fd:'Fredoka','Trebuchet MS',sans-serif;--fb:'Nunito Sans','Segoe UI',Arial,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1626;--surface:#162238;--ink:#e8eefb;--muted:#9db0cc;--line:#2a3a58;--stat:#ff9a62;--stat-soft:#3a2417;--dyn:#6ea8ff;--dyn-soft:#172c52;--bon:#b39bff;--bon-soft:#2a2250;--ok:#4cd68a;--warn:#ff9a62;--on:#0e1626;--stage:#12233f;--wall:#3a3f4d;--wallline:#2e3340;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1626;--surface:#162238;--ink:#e8eefb;--muted:#9db0cc;--line:#2a3a58;--stat:#ff9a62;--stat-soft:#3a2417;--dyn:#6ea8ff;--dyn-soft:#172c52;--bon:#b39bff;--bon-soft:#2a2250;--ok:#4cd68a;--warn:#ff9a62;--on:#0e1626;--stage:#12233f;--wall:#3a3f4d;--wallline:#2e3340;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:17px/1.5 var(--fb);padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-block:12px 40px}
+.wrap{max-width:1180px;margin:0 auto}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0 16px}
+.brand{font:600 24px var(--fd);color:var(--ink);text-decoration:none;display:flex;gap:10px;align-items:center}
+.brand svg{width:30px;height:30px}
+button,.btn{font:700 16px var(--fb);min-height:44px;padding:8px 16px;border-radius:10px;border:2px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+button:hover,.btn:hover{border-color:var(--ck,var(--dyn))}
+button:focus-visible,a:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid var(--ck,var(--dyn));outline-offset:2px}
+.btn.pri,button.pri{background:var(--ck,var(--dyn));color:var(--on);border-color:var(--ck,var(--dyn))}
+button:disabled{opacity:.5;cursor:not-allowed}
+button.on{background:var(--ck,var(--dyn));color:var(--on);border-color:var(--ck,var(--dyn))}
+h1,h2,h3{font-family:var(--fd);font-weight:600;text-wrap:balance;margin:0}
+h1{font-size:clamp(30px,5vw,46px);line-height:1.1}
+h2{font-size:26px;margin:32px 0 6px}
+.lead{max-width:62ch;color:var(--muted);margin:10px 0 0}
+.sect-note{color:var(--muted);margin:0 0 14px;max-width:70ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.card{background:var(--surface);border:2px solid var(--line);border-radius:16px;overflow:hidden;text-decoration:none;color:var(--ink);display:flex;flex-direction:column;min-width:0}
+.card:hover{border-color:var(--ck)}
+.card .th{background:var(--soft);height:104px;display:flex;align-items:center;justify-content:center;position:relative}
+.card .th svg{height:92px;width:auto;max-width:100%}
+.card .body{padding:12px 16px 16px}
+.card .num{font:700 13px var(--fb);letter-spacing:.08em;text-transform:uppercase;color:var(--ck)}
+.card h3{font-size:21px;margin:2px 0 4px}
+.card p{margin:0;color:var(--muted);font-size:15px}
+.done{position:absolute;top:8px;right:8px;background:var(--ok);color:var(--on);border-radius:99px;font:700 13px var(--fb);padding:2px 10px}
+.k-stat{--ck:var(--stat);--soft:var(--stat-soft)}.k-dyn{--ck:var(--dyn);--soft:var(--dyn-soft)}.k-bon{--ck:var(--bon);--soft:var(--bon-soft)}
+.safety{margin-top:28px;border:2px dashed var(--line);border-radius:14px;padding:12px 16px;color:var(--muted)}
+.crumb{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.crumb a{color:var(--ck);font-weight:700}
+.exp h1{font-size:clamp(28px,4vw,38px)}
+.tag{font:700 13px var(--fb);letter-spacing:.08em;text-transform:uppercase;background:var(--soft);color:var(--ck);padding:3px 10px;border-radius:99px}
+.expgrid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;margin-top:14px;align-items:start}
+@media(max-width:920px){.expgrid{grid-template-columns:minmax(0,1fr)}}
+.stage{border:2px solid var(--line);border-radius:16px;overflow:hidden;background:var(--stage)}
+.stage svg.sim{display:block;width:100%;height:auto;user-select:none;-webkit-user-select:none}
+.stage .bg{fill:var(--stage)}
+.stage .wall{fill:var(--wall)}.stage .wallline{stroke:var(--wallline);stroke-width:2}
+.stage text.lbl{fill:var(--ink);font:700 15px var(--fb)}
+.stage text.hint{fill:var(--muted);font:700 17px var(--fb)}
+.ctrls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 4px 0}
+.ctrls .grp{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.ctrls label{font-weight:700;color:var(--muted)}
+.status{margin-top:10px;padding:10px 14px;border-radius:12px;background:var(--surface);border:2px solid var(--line);min-height:48px}
+.status.good{border-color:var(--ok)}.status.bad{border-color:var(--warn)}
+.panel{background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:16px 18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.panel h3{font-size:19px;color:var(--ck);margin-bottom:4px}
+.panel ul,.panel ol{margin:0;padding-left:22px}.panel li{margin:3px 0}
+.panel textarea{width:100%;min-height:96px;font:16px var(--fb);padding:10px;border-radius:10px;border:2px solid var(--line);background:var(--bg);color:var(--ink);resize:vertical}
+.reveal{background:var(--soft);border-radius:12px;padding:12px 14px}
+.reveal p{margin:4px 0 10px}
+.safe{background:var(--dyn-soft);border-radius:10px;padding:8px 12px;font-weight:700}
+.nav{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:22px}
+.tray{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px;margin-top:12px}
+.tray button{flex-direction:column;padding:6px;font-size:14px;gap:2px}
+.tray svg{width:70px;height:46px}
+table.res{border-collapse:collapse;width:100%;margin-top:12px;font-size:15px}
+table.res td,table.res th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+.tablewrap{overflow-x:auto}
+.qbox{padding:20px;display:flex;flex-direction:column;gap:12px;min-height:360px;background:var(--surface)}
+.qbox .q{font:600 24px var(--fd)}
+.qbox .opts{display:grid;gap:10px}
+.qbox .opts button{justify-content:flex-start;text-align:left;font-size:17px}
+.qbox .opts button.right{background:var(--ok);color:var(--on);border-color:var(--ok)}
+.qbox .opts button.wrong{border-color:var(--warn);color:var(--warn)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top"><a class="brand" href="#accueil"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#ffb703"/><path d="M18 4 8 18h7l-2 10 11-15h-7z" fill="#14213d"/></svg>Labo de l'électricité</a>
+<button id="themeBtn" type="button" aria-label="Changer le thème">Thème</button></header>
+<main id="app"></main>
+</div>
+<script>
+(function(){'use strict';
+const NS='http://www.w3.org/2000/svg';
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:v}catch(e){return d}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+function S(tag,at,parent){const e=document.createElementNS(NS,tag);for(const k in (at||{}))e.setAttribute(k,at[k]);if(parent)parent.appendChild(e);return e}
+function H(tag,at,html,parent){const e=document.createElement(tag);for(const k in (at||{})){if(k==='class')e.className=at[k];else e.setAttribute(k,at[k])}if(html!=null)e.innerHTML=html;if(parent)parent.appendChild(e);return e}
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function pt(svg,ev){const p=svg.createSVGPoint();p.x=ev.clientX;p.y=ev.clientY;const q=p.matrixTransform(svg.getScreenCTM().inverse());return{x:q.x,y:q.y}}
+function drag(node,svg,h){node.style.touchAction='none';node.style.cursor='grab';
+ node.addEventListener('pointerdown',e=>{e.preventDefault();try{node.setPointerCapture(e.pointerId)}catch(_){}
+  h.start&&h.start(pt(svg,e),e);node.style.cursor='grabbing';
+  const mv=ev=>{h.move&&h.move(pt(svg,ev),ev)};
+  const up=ev=>{node.removeEventListener('pointermove',mv);node.removeEventListener('pointerup',up);node.removeEventListener('pointercancel',up);node.style.cursor='grab';h.end&&h.end(pt(svg,ev),ev)};
+  node.addEventListener('pointermove',mv);node.addEventListener('pointerup',up);node.addEventListener('pointercancel',up)})}
+function glyph(parent,sign,r){r=r||7;const g=S('g',{},parent);S('circle',{r:r,fill:sign>0?'#e5383b':'#2b6cff'},g);
+ const t=S('text',{'text-anchor':'middle','dominant-baseline':'central','font-size':r*1.7,fill:'#fff','font-weight':'800','font-family':'Nunito Sans,Arial,sans-serif'},g);t.textContent=sign>0?'+':'−';g.style.pointerEvents='none';return g}
+function place(g,x,y){g.setAttribute('transform','translate('+x+','+y+')')}
+function show(g,v){g.style.display=v?'':'none'}
+function rng(seed){let s=seed;return()=>{s=(s*1664525+1013904223)%4294967296;return s/4294967296}}
+function shuffle(a,seed){const r=rng(seed),b=a.slice();for(let i=b.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+function btn(label,fn,parent,cls){const b=H('button',{type:'button',class:cls||''},label,parent);b.addEventListener('click',fn);return b}
+function segmented(parent,label,opts,val,fn){const w=H('div',{class:'grp'},'',parent);if(label)H('label',{},label,w);const bs=[];
+ opts.forEach(([v,t])=>{const b=btn(t,()=>{bs.forEach(x=>x.classList.remove('on'));b.classList.add('on');fn(v)},w);if(v===val)b.classList.add('on');bs.push(b)});return w}
+const EXPS=[];
+/* ---- usines de dessin ---- */
+function makeSweater(parent,x,y){
+ const g=S('g',{transform:'translate('+x+','+y+')'},parent);
+ S('path',{d:'M40 20 L100 0 Q120 28 140 0 L200 20 L240 130 L200 145 L185 105 L185 300 L55 300 L55 105 L40 145 L0 130 Z',fill:'#c8553d'},g);
+ S('rect',{x:55,y:282,width:130,height:18,fill:'#a8402b'},g);
+ S('path',{d:'M100 0 Q120 28 140 0',fill:'none',stroke:'#a8402b','stroke-width':8},g);
+ for(let i=0;i<5;i++)S('line',{x1:57,x2:183,y1:40+i*48,y2:40+i*48,stroke:'#b84a33','stroke-width':3},g);
+ const P=[];for(let r=0;r<4;r++)for(let c=0;c<4;c++)P.push([62+c*31,62+r*54]);
+ const pos=[],neg=[];P.forEach(p=>{const a=glyph(g,1,6);place(a,p[0],p[1]);pos.push(a);const b=glyph(g,-1,6);place(b,p[0]+13,p[1]+11);neg.push(b)});
+ const rank=[];shuffle(P.map((_,i)=>i),7).forEach((idx,k)=>rank[idx]=k);
+ function update(t,mode){P.forEach((_,i)=>{const rem=rank[i]<t;
+  show(pos[i],mode==='all'||(mode==='diff'&&rem));show(neg[i],mode==='all'&&!rem)})}
+ update(0,'all');return{g:g,x:x,y:y,w:240,h:300,update:update}}
+function makeBalloon(parent){
+ const g=S('g',{},parent);
+ S('path',{d:'M0 78 C 12 108 -12 130 0 165',fill:'none',stroke:'#7b8499','stroke-width':2},g);
+ S('ellipse',{rx:55,ry:70,fill:'#e63946'},g);
+ S('ellipse',{cx:-26,cy:-30,rx:10,ry:18,fill:'#fff',opacity:.28,transform:'rotate(25 -26 -30)'},g);
+ S('path',{d:'M-7 71 L7 71 L0 82 Z',fill:'#b3202c'},g);
+ let slots=[];for(let yy=-56,row=0;yy<=56;yy+=16,row++)for(let xx=-48;xx<=48;xx+=17){const x=xx+(row%2?8:0);if((x/45)**2+(yy/61)**2<=1)slots.push([x,yy])}
+ slots=shuffle(slots,3);const n=Math.min(10,Math.floor(slots.length/3));
+ const pos=[],neg=[],ext=[];
+ for(let i=0;i<n;i++){const a=glyph(g,1,6);place(a,slots[i*2][0],slots[i*2][1]);pos.push(a);const b=glyph(g,-1,6);place(b,slots[i*2+1][0],slots[i*2+1][1]);neg.push(b)}
+ for(let i=0;i<n;i++){const e=glyph(g,-1,6);place(e,slots[2*n+i][0],slots[2*n+i][1]);ext.push(e)}
+ function update(t,mode){for(let i=0;i<n;i++){show(pos[i],mode==='all');show(neg[i],mode==='all');show(ext[i],mode!=='none'&&i<t)}}
+ update(0,'all');
+ return{g:g,maxT:n,setPos:(x,y)=>place(g,x,y),update:update}}
+/* ---- contexte d'une expérience ---- */
+let destroyers=[];
+function cleanup(){destroyers.forEach(f=>{try{f()}catch(e){}});destroyers=[]}
+function makeCtx(stageBox,ctrlBox,statusBox,title){
+ const c={ctrl:ctrlBox,status(t,k){statusBox.textContent=t;statusBox.className='status '+(k||'')},
+ svg(){const s=S('svg',{viewBox:'0 0 800 500',role:'img','aria-label':title});s.setAttribute('class','sim');stageBox.appendChild(s);S('rect',{class:'bg',width:800,height:500},s);return s},
+ box(){return stageBox},
+ loop(fn){let last=performance.now(),id;const f=t=>{const dt=Math.min(.05,(t-last)/1000);last=t;fn(dt,t/1000);id=requestAnimationFrame(f)};id=requestAnimationFrame(f);destroyers.push(()=>cancelAnimationFrame(id))},
+ on(fn){destroyers.push(fn)},done(){}};return c}
+/* ---- Centre 1 : ballon et mur ---- */
+function mountBallon(ctx){
+ const svg=ctx.svg(),WX=610;
+ S('rect',{x:WX,y:0,width:800-WX,height:500,class:'wall'},svg);
+ for(let y=0;y<500;y+=48)S('line',{x1:WX,x2:800,y1:y,y2:y,class:'wallline'},svg);
+ const sw=makeSweater(svg,30,110);
+ S('text',{x:150,y:440,'text-anchor':'middle',class:'lbl'},svg).textContent='Pull en laine';
+ S('text',{x:700,y:490,'text-anchor':'middle',class:'lbl'},svg).textContent='Mur';
+ const wp=[],wn=[];
+ for(let r=0;r<10;r++)for(let c=0;c<2;c++){const x=WX+36+c*80,y=26+r*48;const a=glyph(svg,1,6);place(a,x,y);const b=glyph(svg,-1,6);place(b,x+17,y);wp.push([a,x,y]);wn.push([b,x+17,y])}
+ const bal=makeBalloon(svg);
+ const hint=S('text',{x:400,y:40,'text-anchor':'middle',class:'hint'},svg);hint.textContent='Glisse le ballon sur le pull pour le frotter';
+ let t=0,mode='all',bx=420,by=260,vx=0,dragging=false,ox=0,oy=0,acc=0,last=null;
+ function render(){
+  bal.setPos(bx,by);sw.update(t,mode);bal.update(t,mode);
+  const gap=WX-(bx+55),pol=(t/bal.maxT)*clamp(1-Math.max(gap,0)/230,0,1);
+  wp.forEach(w=>{show(w[0],mode==='all');const k=Math.exp(-(((w[2]-by)/130)**2));place(w[0],w[1]-pol*4*k,w[2])});
+  wn.forEach(w=>{show(w[0],mode==='all');const k=Math.exp(-(((w[2]-by)/130)**2));place(w[0],w[1]+pol*26*k,w[2])});
+  readout.textContent=t===0?'Ballon neutre : autant de + que de −.':'Le ballon a '+t+' électron'+(t>1?'s':'')+' en trop : il est négatif.';
+  hint.style.display=t===0?'':'none';
+  ctx.status(t===0?'Frotte le ballon sur le pull.':(gap<230&&pol>0.3?'Les charges du mur bougent : le ballon est attiré !':'Le ballon est chargé. Approche-le du mur.'),pol>0.3?'good':'');if(t>=bal.maxT)ctx.done(0);if(t>0&&!dragging&&bx+55>=WX-1)ctx.done(1);if(mode==='diff')ctx.done(2)}
+ drag(bal.g,svg,{start(p){dragging=true;ox=p.x-bx;oy=p.y-by;vx=0;acc=0},
+  move(p){const nx=clamp(p.x-ox,55,WX-55),ny=clamp(p.y-oy,72,330);const d=Math.hypot(nx-bx,ny-by);bx=nx;by=ny;
+   if(bx-55<sw.x+sw.w&&bx+55>sw.x&&by+70>sw.y&&by-70<sw.y+sw.h){acc+=d;while(acc>=30){acc-=30;if(t<bal.maxT)t++}}},
+  end(){dragging=false}});
+ const ctr=ctx.ctrl;segmented(ctr,'Charges :',[['all','Toutes'],['diff','Différence'],['none','Aucune']],'all',v=>mode=v);
+ btn('Remettre à zéro',()=>{t=0;bx=420;by=260;vx=0},ctr);
+ const readout=H('span',{style:'font-weight:700'},'',ctr);
+ ctx.loop(dt=>{if(!dragging&&t>0){let a=0;const gw=WX-(bx+55);if(gw<220)a+=t*70*(1-Math.max(gw,0)/220);
+  const gs=(bx-55)-(sw.x+sw.w);if(gs<150&&by-70<sw.y+sw.h)a-=t*50*(1-Math.max(gs,0)/150);
+  vx+=a*dt;vx*=Math.pow(.03,dt);bx+=vx*dt;if(bx>WX-55){bx=WX-55;vx=0}if(bx<55){bx=55;vx=0}}render()})}
+/* ---- Centre 3 : filet d'eau ---- */
+function mountEau(ctx){
+ const svg=ctx.svg(),TX=520;
+ const sw=makeSweater(svg,30,110);
+ S('text',{x:150,y:440,'text-anchor':'middle',class:'lbl'},svg).textContent='Pull en laine';
+ S('path',{d:'M800 38 H'+(TX+14)+' Q'+TX+' 38 '+TX+' 52 V58',fill:'none',stroke:'#9aa5b1','stroke-width':16,'stroke-linecap':'round'},svg);
+ S('rect',{x:TX-9,y:56,width:18,height:10,rx:3,fill:'#7c8794'},svg);
+ S('path',{d:'M430 440 L450 480 H590 L610 440',fill:'#9aa5b1',opacity:.75},svg);
+ S('text',{x:TX,y:497,'text-anchor':'middle',class:'lbl'},svg).textContent='Bassine';
+ const dl=S('g',{},svg),bal=makeBalloon(svg),drops=[];
+ let t=0,bx=340,by=300,open=true,acc=0,dragging=false,ox=0,oy=0,spawn=0;
+ const rr=rng(11);
+ drag(bal.g,svg,{start(p){dragging=true;ox=p.x-bx;oy=p.y-by;acc=0},
+  move(p){const nx=clamp(p.x-ox,55,745),ny=clamp(p.y-oy,72,330);const d=Math.hypot(nx-bx,ny-by);bx=nx;by=ny;
+   if(bx-55<sw.x+sw.w&&bx+55>sw.x&&by+70>sw.y&&by-70<sw.y+sw.h){acc+=d;while(acc>=30){acc-=30;if(t<bal.maxT)t++}}},end(){dragging=false}});
+ const ctr=ctx.ctrl;
+ const tap=btn('Fermer le robinet',()=>{open=!open;tap.textContent=open?'Fermer le robinet':'Ouvrir le robinet'},ctr);
+ btn('Remettre à zéro',()=>{t=0;bx=340;by=300},ctr);
+ ctx.loop(dt=>{
+  if(open){spawn+=dt*60;while(spawn>=1){spawn--;const c=S('circle',{r:3.6,fill:'#3ea6ff'},dl);drops.push({x:TX+(rr()-.5)*1.5,y:70,vx:0,vy:150,el:c})}}
+  for(let i=drops.length-1;i>=0;i--){const d=drops[i];
+   if(t>0){const dx=bx-d.x,dy=by-d.y,r2=dx*dx+dy*dy,r=Math.sqrt(r2)||1,f=t*3e5/(r2+2000);d.vx+=f*dx/r*dt;d.vy+=f*dy/r*dt}
+   d.vy+=500*dt;d.x+=d.vx*dt;d.y+=d.vy*dt;d.el.setAttribute('cx',d.x);d.el.setAttribute('cy',d.y);
+   const inB=((d.x-bx)/55)**2+((d.y-by)/70)**2<1;
+   if(d.y>470||d.x<0||d.x>800||inB){d.el.remove();drops.splice(i,1)}}
+  bal.setPos(bx,by);sw.update(t,'all');bal.update(t,'all');
+  if(t>=bal.maxT)ctx.done(0);if(!open)ctx.done(2);
+  const bend=Math.abs(drops.length?drops[Math.floor(drops.length*.8)].x-TX:0);
+  if(bend>35)ctx.done(1);
+  ctx.status(!open?'Le robinet est fermé.':t===0?'Le ballon n’est pas chargé : le filet tombe tout droit. Frotte-le sur le pull.':(bend>12?'Le filet se plie vers le ballon, sans contact !':'Approche le ballon chargé du filet d’eau.'),bend>12?'good':'')})}
+/* ---- Centre 2 : danse des papiers ---- */
+function mountPapiers(ctx){
+ const svg=ctx.svg();
+ S('rect',{x:0,y:440,width:800,height:60,fill:'#a47c52'},svg);
+ S('rect',{x:40,y:378,width:210,height:62,rx:8,fill:'#b8956a'},svg);
+ for(let i=0;i<7;i++)S('path',{d:'M48 '+(388+i*8)+' q10 -6 20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0',fill:'none',stroke:'#8a6a45','stroke-width':2},svg);
+ S('text',{x:145,y:462,'text-anchor':'middle',class:'lbl'},svg).textContent='Laine';
+ const rr=rng(5),cols=['#ffffff','#ffe08a','#ffb3c1','#b8f0d0','#bfe0ff'],papers=[];
+ for(let i=0;i<26;i++){const el=S('rect',{x:-8,y:-5,width:16,height:10,fill:cols[i%5],stroke:'#8d99ae','stroke-width':1},svg);
+  papers.push({x:330+rr()*400,y:435,vx:0,vy:0,ang:(rr()-.5)*40,ch:false,tm:0,el:el})}
+ const ruler=S('g',{},svg);
+ S('rect',{x:-150,y:-13,width:300,height:26,rx:3,fill:'#8fd3e8','fill-opacity':.75,stroke:'#3d93ad','stroke-width':2},ruler);
+ for(let i=-140;i<=140;i+=14)S('line',{x1:i,x2:i,y1:-13,y2:i%70===0?-3:-8,stroke:'#3d93ad'},ruler);
+ const gl=[];for(let i=0;i<8;i++){const g=glyph(ruler,-1,6);place(g,-122+i*35,6);gl.push(g)}
+ const hint=S('text',{x:400,y:40,'text-anchor':'middle',class:'hint'},svg);hint.textContent='Frotte la règle sur la laine, puis approche-la des papiers';
+ let rx=420,ry=200,ch=0,drg=false,ox=0,oy=0;
+ drag(ruler,svg,{start(p){drg=true;ox=p.x-rx;oy=p.y-ry},
+  move(p){const nx=clamp(p.x-ox,150,650),ny=clamp(p.y-oy,30,400);const d=Math.hypot(nx-rx,ny-ry);rx=nx;ry=ny;
+   if(rx-150<250&&rx+150>40&&ry+13>378&&ry-13<440)ch=Math.min(1,ch+d/900)},end(){drg=false}});
+ btn('Remettre à zéro',()=>{ch=0;rx=420;ry=200;papers.forEach(p=>{p.y=435;p.vx=p.vy=0;p.ch=false})},ctx.ctrl);
+ const ro=H('span',{style:'font-weight:700'},'',ctx.ctrl);
+ ctx.loop(dt=>{
+  ch=Math.max(0,ch-.01*dt);
+  papers.forEach(p=>{
+   const cx=clamp(p.x,rx-150,rx+150),cy=ry+13,dx=cx-p.x,dy=cy-p.y,d=Math.hypot(dx,dy)||1;
+   let ax=0,ay=700;
+   if(!p.ch&&ch>.05){const f=ch*1.3e7/(d*d+500);ax+=f*dx/d;ay+=f*dy/d;
+    if(d<13){p.ch=true;p.tm=3;ch=Math.max(0,ch-.02);p.vx=-dx/d*240+(rr()-.5)*260;p.vy=-dy/d*240-80}}
+   if(p.ch&&d<200){const f=5e6/(d*d+500);ax-=f*dx/d;ay-=f*dy/d}
+   p.vx+=ax*dt;p.vy+=ay*dt;const k=Math.pow(.35,dt);p.vx*=k;p.vy*=k;p.x=clamp(p.x+p.vx*dt,10,790);p.y+=p.vy*dt;
+   if(p.y>=435){p.y=435;p.vy=Math.abs(p.vy)>80?-p.vy*.25:0;p.vx*=.8}
+   if(p.ch){p.tm-=dt;if(p.tm<=0)p.ch=false}
+   p.el.setAttribute('transform','translate('+p.x+','+p.y+') rotate('+(p.ang+clamp(p.vx*.06,-35,35))+')');
+   p.el.setAttribute('stroke',p.ch?'#2b6cff':'#8d99ae');p.el.setAttribute('stroke-width',p.ch?2.5:1)});
+  place(ruler,rx,ry);const n=Math.round(ch*8);gl.forEach((g,i)=>show(g,i<n));
+  hint.style.display=ch>0?'none':'';
+  ro.textContent='Charge de la règle : '+'▮'.repeat(n)+'▯'.repeat(8-n);
+  const air=papers.filter(p=>p.y<425).length,rep=papers.filter(p=>p.ch).length;if(ch>.8)ctx.done(0);if(air>=5)ctx.done(1);if(rep>0)ctx.done(2);
+  ctx.status(ch<.05?'La règle n’est pas chargée : rien ne bouge. Frotte-la sur la laine.':(rep>0?'Un papier a touché la règle : il a pris sa charge et il est repoussé !':(air>0?'Les papiers neutres sont attirés par la règle chargée.':'La règle est chargée. Approche-la des papiers.')),air>0||rep>0?'good':'')})}
+/* ---- Circuits (centres 4, 5, 6) ---- */
+const OBJ=[
+ {id:'coin',n:'Pièce de monnaie',c:1,s:'<circle cx="30" cy="20" r="15" fill="#e0b43c" stroke="#a9831f" stroke-width="2"/><circle cx="30" cy="20" r="9" fill="none" stroke="#a9831f"/>'},
+ {id:'key',n:'Clé',c:1,s:'<circle cx="16" cy="20" r="8" fill="none" stroke="#9aa5b1" stroke-width="4"/><path d="M24 20H52M44 20v8M50 20v6" stroke="#9aa5b1" stroke-width="4" fill="none" stroke-linecap="round"/>'},
+ {id:'foil',n:'Papier d’aluminium',c:1,s:'<path d="M8 28 14 8 26 14 36 6 52 12 48 32 30 36Z" fill="#cfd6de" stroke="#9aa5b1"/>'},
+ {id:'nail',n:'Clou',c:1,s:'<path d="M6 20H46" stroke="#8d99a6" stroke-width="4"/><rect x="46" y="12" width="6" height="16" fill="#8d99a6"/>'},
+ {id:'clip',n:'Trombone',c:1,s:'<path d="M20 30V12a6 6 0 0 1 12 0v18a10 10 0 0 1-20 0V14" fill="none" stroke="#9aa5b1" stroke-width="3" transform="translate(8 0)"/>'},
+ {id:'lead',n:'Mine de crayon',c:.45,s:'<rect x="6" y="16" width="48" height="7" rx="3" fill="#3b3b4f"/>'},
+ {id:'eraser',n:'Gomme',c:0,s:'<rect x="10" y="10" width="40" height="22" rx="5" fill="#f08fa5"/><rect x="10" y="10" width="14" height="22" rx="5" fill="#6c8ebf"/>'},
+ {id:'spoon',n:'Cuillère en bois',c:0,s:'<ellipse cx="16" cy="20" rx="11" ry="8" fill="#b98550"/><rect x="26" y="18" width="28" height="5" rx="2" fill="#b98550"/>'},
+ {id:'glass',n:'Verre',c:0,s:'<path d="M18 6H42L38 34H22Z" fill="#9ad1ff" fill-opacity=".45" stroke="#6aa8d8" stroke-width="2"/>'},
+ {id:'ruler',n:'Règle en plastique',c:0,s:'<rect x="4" y="12" width="52" height="16" fill="#8fd3c4" fill-opacity=".6" stroke="#4bb3a0"/><path d="M12 12v6M22 12v6M32 12v6M42 12v6" stroke="#4bb3a0"/>'},
+ {id:'cloth',n:'Morceau de tissu',c:0,s:'<rect x="8" y="8" width="44" height="26" fill="#e9967a"/><path d="M8 16H52M8 24H52" stroke="#c9735a"/>'},
+ {id:'band',n:'Élastique',c:0,s:'<ellipse cx="30" cy="20" rx="22" ry="12" fill="none" stroke="#d9534f" stroke-width="4"/>'}];
+function mountCircuit(ctx,cfg){
+ const svg=ctx.svg();
+ S('defs',{},svg).innerHTML='<radialGradient id="gl'+cfg.k+'"><stop offset="0" stop-color="#ffe066" stop-opacity=".95"/><stop offset="1" stop-color="#ffe066" stop-opacity="0"/></radialGradient>';
+ const N={},W=[];
+ function node(name,x,y,vis){const c=S('circle',{cx:x,cy:y,r:10,fill:'none',stroke:'var(--ink)','stroke-width':2.5,'stroke-dasharray':'4 3'},svg);N[name]={x:x,y:y,el:c,vis:vis!==false}}
+ /* ampoule */
+ const glow=S('circle',{cx:600,cy:150,r:120,fill:'url(#gl'+cfg.k+')',opacity:0},svg);
+ const glass=S('circle',{cx:600,cy:150,r:62,fill:'#dfe9f3','fill-opacity':.7,stroke:'#9aa5b1','stroke-width':3},svg);
+ S('path',{d:'M582 208 L588 166 Q600 140 612 166 L618 208',fill:'none',stroke:'#6b7280','stroke-width':3},svg);
+ S('rect',{x:578,y:206,width:44,height:38,rx:4,fill:'#aab3bd'},svg);
+ for(let i=0;i<3;i++)S('line',{x1:578,x2:622,y1:214+i*10,y2:214+i*10,stroke:'#7c8794','stroke-width':3},svg);
+ S('path',{d:'M588 244 L612 244 L606 258 L594 258Z',fill:'#5c677d'},svg);
+ node('Bs',632,226);node('Bt',600,268);
+ S('text',{x:648,y:230,class:'lbl'},svg).textContent='côté';
+ S('text',{x:616,y:290,class:'lbl'},svg).textContent='bout';
+ /* pile */
+ S('rect',{x:150,y:385,width:180,height:50,rx:8,fill:'#343a46'},svg);S('rect',{x:270,y:385,width:60,height:50,rx:8,fill:'#e0a526'},svg);
+ S('rect',{x:330,y:399,width:16,height:22,fill:'#c9ced6'},svg);S('rect',{x:140,y:399,width:10,height:22,fill:'#c9ced6'},svg);
+ S('text',{x:238,y:416,'text-anchor':'middle',fill:'#fff','font-weight':'800','font-size':20},svg).textContent='PILE';
+ S('text',{x:366,y:392,class:'lbl'},svg).textContent='+';S('text',{x:122,y:392,class:'lbl'},svg).textContent='−';
+ node('P+',352,410);node('P-',134,410);
+ let swG=null,clipG=null,board,fast,built=!cfg.switch,swClosed=false,obj=null;
+ if(cfg.switch){
+  swG=S('g',{},svg);
+  board=S('rect',{x:70,y:140,width:230,height:110,rx:6,fill:'#c8a165'},swG);
+  fast=S('g',{},swG);[[110,190],[260,190]].forEach(p=>{S('circle',{cx:p[0],cy:p[1],r:9,fill:'#e0b43c',stroke:'#a9831f','stroke-width':2},fast)});
+  clipG=S('g',{transform:'translate(110 190) rotate(-32)'},swG);
+  S('rect',{x:-8,y:-6,width:166,height:12,rx:6,fill:'none',stroke:'#7c8794','stroke-width':3},clipG);S('rect',{x:-2,y:-1,width:148,height:2,fill:'#7c8794'},clipG);
+  node('S1',110,190,false);node('S2',260,190,false);
+  board.style.display=fast.style.display=clipG.style.display='none';
+  clipG.style.cursor='pointer';
+  clipG.addEventListener('click',()=>{if(!built)return;swClosed=!swClosed;clipG.setAttribute('transform','translate(110 190) rotate('+(swClosed?0:-32)+')')});
+  S('text',{x:185,y:272,'text-anchor':'middle',class:'lbl'},svg).textContent='Interrupteur (clique sur le trombone)';
+ }
+ let objG=null;
+ if(cfg.gap){
+  S('path',{d:'M196 178 L236 187 L236 193 L196 202Z',fill:'#e63946'},svg);S('path',{d:'M464 178 L424 187 L424 193 L464 202Z',fill:'#222'},svg);
+  node('G1',232,190);node('G2',428,190);objG=S('g',{},svg);
+  S('text',{x:330,y:140,'text-anchor':'middle',class:'lbl'},svg).textContent='Objet à tester';
+ }
+ /* fils */
+ const wl=S('g',{},svg),el=S('g',{},svg),hl=S('g',{},svg);
+ const cs=['#e63946','#f4a300','#2a9d8f'],slots=[[[480,420],[560,436]],[[580,420],[660,436]],[[680,420],[760,436]]];
+ S('text',{x:620,y:400,"text-anchor":"middle",class:"lbl"},svg).textContent='Fils';
+ slots.forEach((s,i)=>{
+  const w={a:{x:s[0][0],y:s[0][1],node:null},b:{x:s[1][0],y:s[1][1],node:null}};
+  w.p=S('path',{fill:'none',stroke:cs[i],'stroke-width':7,'stroke-linecap':'round'},wl);
+  w.dots=[];for(let k=0;k<9;k++)w.dots.push(S('circle',{r:4.5,fill:'#2b6cff',stroke:'#fff','stroke-width':1.5,opacity:0},el));
+  ['a','b'].forEach(e=>{const h=S('circle',{r:14,fill:cs[i],stroke:'#fff','stroke-width':3},hl);w[e].h=h;
+   drag(h,svg,{move(p){const q=w[e];q.x=clamp(p.x,10,790);q.y=clamp(p.y,10,490);q.node=null},
+    end(){const q=w[e];let best=null,bd=38;for(const k in N){if(!N[k].vis)continue;const d=Math.hypot(N[k].x-q.x,N[k].y-q.y);if(d<bd){bd=d;best=k}}
+     if(best){q.node=best;q.x=N[best].x;q.y=N[best].y}}})});
+  W.push(w)});
+ if(cfg.pre){const pr=[['P+','G1'],['G2','Bt'],['Bs','P-']];W.forEach((w,i)=>{[['a',pr[i][0]],['b',pr[i][1]]].forEach(z=>{w[z[0]].node=z[1];w[z[0]].x=N[z[1]].x;w[z[0]].y=N[z[1]].y})})}
+ function setObj(o){obj=o;objG.innerHTML='';if(o){const g=S('g',{transform:'translate('+(330-66)+' '+(190-44)+') scale(2.2)'},objG);g.innerHTML=o.s}}
+ function setBuilt(v){built=v;wl.style.opacity=hl.style.opacity=v?1:.3;wl.style.pointerEvents=hl.style.pointerEvents=v?'':'none'}
+ function analyze(sc,oc){const par={};Object.keys(N).forEach(k=>par[k]=k);const f=a=>{while(par[a]!==a){par[a]=par[par[a]];a=par[a]}return a};
+  W.forEach(w=>{if(w.a.node&&w.b.node)par[f(w.a.node)]=f(w.b.node)});
+  if(cfg.switch&&sc)par[f('S1')]=f('S2');if(cfg.gap&&oc>0)par[f('G1')]=f('G2');
+  const P=f('P+'),M=f('P-'),T=f('Bt'),D=f('Bs');
+  return{short:P===M,lit:P!==M&&T!==D&&((P===T&&M===D)||(P===D&&M===T))}}
+ function dirs(sc,oc){const adj={};Object.keys(N).forEach(k=>adj[k]=[]);const ed=(a,b)=>{adj[a].push(b);adj[b].push(a)};
+  W.forEach(w=>{if(w.a.node&&w.b.node)ed(w.a.node,w.b.node)});ed('Bt','Bs');if(cfg.switch&&sc)ed('S1','S2');if(cfg.gap&&oc>0)ed('G1','G2');
+  const d={'P-':0},q=['P-'];while(q.length){const u=q.shift();adj[u].forEach(v=>{if(d[v]==null){d[v]=d[u]+1;q.push(v)}})}return d}
+ const showE=H('input',{type:'checkbox',id:'showE'},'',null);showE.checked=true;
+ const lab=H('label',{for:'showE'},' Voir les électrons',null);lab.prepend(showE);ctx.ctrl.appendChild(lab);
+ if(cfg.switch){const steps=['1. Pose le carton','2. Plante les 2 attaches','3. Fixe le trombone'];let n=0;const bs=[];
+  setBuilt(false);
+  steps.forEach((s,i)=>{const b=btn(s,()=>{n=i+1;if(n===1)board.style.display='';if(n===2){fast.style.display='';N.S1.vis=N.S2.vis=true}
+   if(n===3){clipG.style.display='';setBuilt(true);ctx.done(0)}bs.forEach((x,j)=>x.disabled=j!==n)},ctx.ctrl,'pri');b.disabled=i!==0;bs.push(b)})}
+ let bright=0,tm=0,msg='',wasLit=false;
+ if(cfg.gap)ctx.box().parentNode.addEventListener('testobj',e=>setObj(e.detail));
+ ctx.loop((dt,time)=>{
+  const oc=obj?obj.c:0,a=analyze(swClosed,oc),tgt=a.lit?(cfg.gap?(.35+.65*Math.min(1,oc)):1):0;
+  if(cfg.k==='4'){if(a.lit)ctx.done(0);if(wasLit&&!a.lit&&!a.short)ctx.done(1);if(a.short)ctx.done(2)}
+  if(cfg.k==='5'){if(a.lit)ctx.done(1);if(wasLit&&!a.lit&&!a.short&&!swClosed)ctx.done(2)}
+  wasLit=a.lit;
+  bright+=(tgt-bright)*Math.min(1,dt*10);glow.setAttribute('opacity',bright*.9);glass.setAttribute('fill',bright>.05?'#ffe066':'#dfe9f3');
+  const dd=a.lit?dirs(swClosed,oc):null;
+  for(const k in N){const used=W.some(w=>w.a.node===k||w.b.node===k);N[k].el.setAttribute('stroke',used?'var(--ok)':'var(--ink)');N[k].el.setAttribute('stroke-dasharray',used?'0':'4 3');N[k].el.style.display=N[k].vis?'':'none'}
+  W.forEach(w=>{const A=w.a,B=w.b,dist=Math.hypot(B.x-A.x,B.y-A.y),sag=30+dist*.2;
+   w.p.setAttribute('d','M'+A.x+' '+A.y+' C'+A.x+' '+(A.y+sag)+' '+B.x+' '+(B.y+sag)+' '+B.x+' '+B.y);
+   w.p.setAttribute('stroke-opacity',a.short?.55:1);
+   place(A.h,A.x,A.y);place(B.h,B.x,B.y);
+   const ok=a.lit&&dd&&A.node&&B.node&&dd[A.node]!=null&&dd[B.node]!=null&&dd[A.node]!==dd[B.node]&&showE.checked;
+   if(ok){const L=w.p.getTotalLength(),fw=dd[A.node]<dd[B.node];w.dots.forEach((c,i)=>{let s=((time*70+i*L/9)%L);if(!fw)s=L-s;const p=w.p.getPointAtLength(s);c.setAttribute('cx',p.x);c.setAttribute('cy',p.y);c.setAttribute('opacity',1)})}
+   else w.dots.forEach(c=>c.setAttribute('opacity',0))});
+  let m,k='';
+  if(!built)m='Construis d’abord l’interrupteur avec les 3 boutons.';
+  else if(a.short){m='Court-circuit ! Un fil relie directement le + et le − de la pile. Ne le fais jamais avec une prise !';k='bad'}
+  else if(a.lit){m=cfg.gap&&oc<1?'Le courant passe un peu : l’ampoule brille faiblement.':'Circuit fermé : les électrons partent du −, traversent l’ampoule et reviennent au +. Ça brille !';k='good'}
+  else{const pw=W.some(w=>w.a.node==='P+'||w.b.node==='P+'),mw=W.some(w=>w.a.node==='P-'||w.b.node==='P-');
+   if(!pw&&!mw)m='Aucun fil n’est branché à la pile. Glisse le bout d’un fil sur un rond.';
+   else if(pw!==mw)m='Un seul côté de la pile est relié : le courant ne peut pas faire de boucle.';
+   else if(cfg.switch&&!swClosed&&analyze(true,oc).lit)m='Le circuit est ouvert à l’interrupteur : clique sur le trombone pour le fermer.';
+   else if(cfg.gap&&!obj)m='Place un objet entre les deux pinces.';
+   else if(cfg.gap&&analyze(false,1).lit)m='Cet objet ne laisse pas passer le courant : le circuit reste ouvert.';
+   else m='Le circuit n’est pas fermé. Les ronds deviennent verts quand un fil y est accroché. Il faut une boucle complète.';k=''}
+  if(m!==msg){msg=m;ctx.status(m,k)}})}
+/* ---- Centre 6 : tri conducteur / isolant ---- */
+function mountConducteur(ctx){
+ mountCircuit(ctx,{k:'6',gap:true,pre:true});
+ const box=ctx.box().parentNode,ui=H('div',{},'<h3 style="margin:14px 0 0;font-size:19px">Choisis un objet \u00e0 tester</h3>',null);ctx.box().after(ui);
+ const prompt=H('div',{class:'status',style:'display:none;margin-bottom:0'},'',ui),tray=H('div',{class:'tray'},'',ui),tw=H('div',{class:'tablewrap'},'',ui);
+ const res={};let pending=null;
+ function render(){tw.innerHTML='';const ks=Object.keys(res);if(!ks.length)return;
+  const t=H('table',{class:'res'},'<tr><th>Objet</th><th>Ma prédiction</th><th>Résultat</th><th></th></tr>',tw);
+  ks.forEach(k=>{const r=res[k],o=OBJ.find(x=>x.id===k);const truth=o.c>0?'Conducteur'+(o.c<1?' (un peu)':''):'Isolant';
+   H('tr',{},'<td>'+o.n+'</td><td>'+(r.pred?'Conducteur':'Isolant')+'</td><td>'+truth+'</td><td>'+((r.pred===(o.c>0))?'✓':'✗ surprise')+'</td>',t)})}
+ OBJ.forEach(o=>{const b=H('button',{type:'button'},'<svg viewBox="0 0 60 40">'+o.s+'</svg><span>'+o.n+'</span>',tray);
+  b.addEventListener('click',()=>{pending=o;prompt.style.display='';prompt.innerHTML='Je prévois que <b>'+o.n.toLowerCase()+'</b> est : ';
+   btn('Conducteur',()=>test(true),prompt);btn('Isolant',()=>test(false),prompt)})});
+ function test(p){const o=pending;res[o.id]={pred:p};{const n=Object.keys(res).length;if(n>=3)ctx.done(0);if(n>=OBJ.length)ctx.done(1);if(o.id==='lead')ctx.done(2)}prompt.style.display='none';
+  box.dispatchEvent(new CustomEvent('testobj',{detail:o}));render()}
+ btn('Retirer l’objet',()=>box.dispatchEvent(new CustomEvent('testobj',{detail:null})),ctx.ctrl)}
+/* ---- Bonus : règles des charges ---- */
+function mountCharges(ctx){
+ const svg=ctx.svg(),ball=[{x:250,y:250,q:1},{x:550,y:250,q:-1}],G=[],A=[];
+ const col=q=>q>0?'#e5383b':q<0?'#2b6cff':'#8d99ae';
+ ball.forEach((b,i)=>{const g=S('g',{},svg);b.c=S('circle',{r:36},g);b.t=S('text',{'text-anchor':'middle','dominant-baseline':'central','font-size':34,'font-weight':800,fill:'#fff'},g);b.g=g;
+  const ar=S('line',{stroke:'#14213d','stroke-width':6,'stroke-linecap':'round'},svg);ar.style.stroke='var(--ink)';b.ar=ar;
+  drag(g,svg,{start(p){b.d=true;b.ox=p.x-b.x;b.oy=p.y-b.y;b.vx=b.vy=0},move(p){b.x=clamp(p.x-b.ox,40,760);b.y=clamp(p.y-b.oy,50,440)},end(){b.d=false}});b.vx=b.vy=0});
+ const st={0:'Glisse les boules pour les rapprocher'};
+ const hint=S('text',{x:400,y:30,'text-anchor':'middle',class:'hint'},svg);hint.textContent='Choisis la charge de chaque boule, puis rapproche-les';
+ const ctr=ctx.ctrl,sg=[['-1','−'],['0','neutre'],['1','+']];
+ segmented(ctr,'Boule 1 :',sg,'1',v=>ball[0].q=+v);segmented(ctr,'Boule 2 :',sg,'-1',v=>ball[1].q=+v);
+ btn('Remettre',()=>{ball[0].x=250;ball[1].x=550;ball[0].y=ball[1].y=250;ball.forEach(b=>b.vx=b.vy=0)},ctr);
+ ctx.loop(dt=>{
+  const a=ball[0],b=ball[1],dx=b.x-a.x,dy=b.y-a.y,d=Math.max(Math.hypot(dx,dy),1),ux=dx/d,uy=dy/d,F=2.4e6*a.q*b.q/(d*d);
+  /* F>0 repousse : boule 2 va dans +u, boule 1 dans -u */
+  if(!a.d){a.vx-=F*ux*dt;a.vy-=F*uy*dt}if(!b.d){b.vx+=F*ux*dt;b.vy+=F*uy*dt}
+  ball.forEach(o=>{if(!o.d){o.vx*=Math.pow(.04,dt);o.vy*=Math.pow(.04,dt);o.x=clamp(o.x+o.vx*dt,40,760);o.y=clamp(o.y+o.vy*dt,50,440)}});
+  const dd=Math.hypot(b.x-a.x,b.y-a.y);
+  if(dd<74&&F<0&&dd>0){const m=74-dd;if(!a.d&&!b.d){a.x-=ux*m/2;b.x+=ux*m/2}else if(!a.d)a.x-=ux*m;else if(!b.d)b.x+=ux*m;a.vx=a.vy=b.vx=b.vy=0}
+  ball.forEach((o,i)=>{place(o.g,o.x,o.y);o.c.setAttribute('fill',col(o.q));o.t.textContent=o.q>0?'+':o.q<0?'−':'0';
+   const len=Math.min(110,Math.abs(F)*.5+(F?20:0)),s=(i?1:-1)*(F>0?1:-1)*-1*-1;
+   const dirx=(F>0?1:-1)*(i?1:-1)*ux,diry=(F>0?1:-1)*(i?1:-1)*uy;
+   o.ar.setAttribute('x1',o.x+dirx*44);o.ar.setAttribute('y1',o.y+diry*44);o.ar.setAttribute('x2',o.x+dirx*(44+len));o.ar.setAttribute('y2',o.y+diry*(44+len));o.ar.style.display=F?'':'none'});
+  hint.style.display='none';if(F<0)ctx.done(0);if(F>0)ctx.done(1);if(F===0&&(a.q===0||b.q===0))ctx.done(2);
+  ctx.status(F===0?'Une boule neutre n’attire et ne repousse rien.':(F>0?'Même charge : elles se repoussent.':'Charges opposées : elles s’attirent.'),F?'good':'')})}
+/* ---- Bonus : éclair ---- */
+function mountEclair(ctx){
+ const svg=ctx.svg();
+ S('rect',{x:0,y:430,width:800,height:70,fill:'#4a6b45'},svg);
+ S('rect',{x:120,y:350,width:90,height:80,fill:'#c9a27a'},svg);S('path',{d:'M110 352 L165 305 L220 352Z',fill:'#8c4a3a'},svg);
+ S('rect',{x:650,y:380,width:14,height:50,fill:'#6b4b2a'},svg);S('circle',{cx:657,cy:360,r:42,fill:'#2f7d4a'},svg);
+ const tower=S('g',{},svg);S('rect',{x:518,y:300,width:5,height:130,fill:'#9aa5b1'},tower);S('path',{d:'M520 285 L520 300',stroke:'#9aa5b1','stroke-width':3},tower);S('circle',{cx:520,cy:285,r:5,fill:'#e0b43c'},tower);tower.style.display='none';
+ const cl=S('g',{},svg);[[300,100,45],[360,70,55],[430,75,60],[500,100,48]].forEach(c=>S('circle',{cx:c[0],cy:c[1],r:c[2],fill:'#7b8499'},cl));S('rect',{x:300,y:100,width:248,height:48,fill:'#7b8499'},cl);
+ const ng=[],pg=[];for(let i=0;i<24;i++){const g=glyph(svg,-1,6);place(g,318+(i%12)*17,122+Math.floor(i/12)*18);ng.push(g)}
+ for(let i=0;i<16;i++){const g=glyph(svg,1,6);place(g,40+i*46,450);pg.push(g)}
+ const flash=S('rect',{width:800,height:500,fill:'#fff',opacity:0,'pointer-events':'none'},svg),bolt=S('polyline',{fill:'none',stroke:'#ffe94d','stroke-width':6,'stroke-linejoin':'round',opacity:0},svg);
+ let ch=0,rate=40,tp=false,n=0,fl=0;const rr=rng(9);
+ const ctr=ctx.ctrl;H('label',{for:'rt'},'Mouvement dans le nuage :',ctr);
+ const sl=H('input',{type:'range',id:'rt',min:0,max:100,value:40},'',ctr);sl.addEventListener('input',()=>rate=+sl.value);
+ const tb=btn('Ajouter un paratonnerre',()=>{tp=!tp;tower.style.display=tp?'':'none';tb.textContent=tp?'Retirer le paratonnerre':'Ajouter un paratonnerre'},ctr);
+ const ro=H('span',{style:'font-weight:700'},'',ctr);
+ function strike(){const tx=tp?520:[165,657,200+rr()*400][Math.floor(rr()*3)],ty=tp?285:tx===165?305:tx===657?320:430;let x=330+rr()*180,y=148;const pts=[[x,y]];
+  for(let i=1;i<9;i++){y=148+(ty-148)*i/9;x+=(tx-x)/(10-i)+(rr()-.5)*50;pts.push([x,y])}pts.push([tx,ty]);
+  bolt.setAttribute('points',pts.map(p=>p.join(',')).join(' '));fl=1;n++;ch=0;ctx.done(0);if(tp)ctx.done(1);if(n>=3)ctx.done(2)}
+ ctx.loop(dt=>{ch=Math.min(100,ch+rate*.12*dt);if(ch>=100)strike();fl=Math.max(0,fl-dt*2.2);
+  flash.setAttribute('opacity',fl*.45);bolt.setAttribute('opacity',Math.min(1,fl*1.6));
+  ng.forEach((g,i)=>show(g,i<Math.round(ch/100*24)));pg.forEach((g,i)=>show(g,i<Math.round(ch/100*16)));
+  ro.textContent='Charge : '+Math.round(ch)+' % — éclairs : '+n;
+  ctx.status(fl>.3?'Éclair ! Les électrons sautent du nuage vers le sol : c’est une énorme étincelle.':(rate===0?'Rien ne bouge dans le nuage : la charge ne monte pas.':'Les gouttes et les glaçons se frottent : le bas du nuage se charge négativement.'),fl>.3?'good':'')})}
+/* ---- Bonus : tri et quiz ---- */
+function mountTri(ctx){
+ const box=H('div',{class:'qbox'},'',ctx.box());
+ const C=[['Un ballon frotté colle au mur.',1,'Les charges restent sur le ballon : statique.'],['Une lampe de poche allumée.',0,'Les électrons circulent en continu dans un circuit fermé : dynamique.'],['Tu reçois un petit choc en touchant la poignée de porte.',1,'Une décharge de charges accumulées : statique.'],['La foudre.',1,'Une décharge géante d’électricité statique.'],['Une lampe de chevet branchée et allumée.',0,'Le courant circule dans le circuit : dynamique.'],['Tes cheveux se dressent quand tu enlèves ton bonnet.',1,'Le frottement a chargé tes cheveux : statique.'],['Une télécommande qui marche avec des piles.',0,'Les piles font circuler le courant : dynamique.'],['Des vêtements collent ensemble à la sortie de la sécheuse.',1,'Le frottement a chargé le tissu : statique.'],['Une règle frottée attire des bouts de papier.',1,'Charge immobile qui attire : statique.'],['Le courant dans les fils de la maison.',0,'Un courant qui circule : dynamique.']];
+ const order=shuffle(C.map((_,i)=>i),+new Date()%1000);let i=0,sc=0;
+ function next(){box.innerHTML='';if(i>=order.length){ctx.done(0);if(sc>=8)ctx.done(1);if(sc===order.length)ctx.done(2);H('div',{class:'q'},'Score : '+sc+' / '+order.length,box);btn('Rejouer',()=>{i=0;sc=0;next()},box,'pri');return}
+  const c=C[order[i]];H('div',{style:'color:var(--muted);font-weight:700'},'Situation '+(i+1)+' sur '+order.length,box);H('div',{class:'q'},c[0],box);
+  const o=H('div',{class:'opts'},'',box);const fb=H('div',{},'',box);
+  [['Électricité statique',1],['Électricité dynamique',0]].forEach(x=>{const b=btn(x[0],()=>{[...o.children].forEach(y=>y.disabled=true);const ok=x[1]===c[1];if(ok)sc++;b.classList.add(ok?'right':'wrong');
+   fb.innerHTML='<p><b>'+(ok?'Bravo !':'Pas tout à fait.')+'</b> '+c[2]+'</p>';btn(i+1<order.length?'Suivant':'Voir mon score',()=>{i++;next()},fb,'pri')},o)})}
+ next();ctx.status('Statique : les charges restent en place. Dynamique : les électrons circulent.')}
+function mountQuiz(ctx){
+ const box=H('div',{class:'qbox'},'',ctx.box());
+ const Q=[['Quand on frotte un ballon sur de la laine, qu’est-ce qui se déplace ?',['Les électrons','Les protons','Les atomes entiers'],'Seuls les électrons passent d’un objet à l’autre.'],['Le ballon qui a gagné des électrons est...',['négatif','positif','neutre'],'Il a des charges négatives en trop.'],['Deux charges de même signe...',['se repoussent','s’attirent','ne font rien'],'Pareil repousse, contraire attire.'],['Pour qu’une ampoule brille, le circuit doit être...',['fermé','ouvert','coupé en deux'],'Les électrons ont besoin d’une boucle complète.'],['Un interrupteur sert à...',['ouvrir et fermer le circuit','fabriquer des électrons','charger la pile'],'Ouvert : le courant s’arrête. Fermé : il passe.'],['Lequel est un isolant ?',['La gomme','La pièce de monnaie','Le papier d’aluminium'],'La gomme ne laisse pas passer les électrons.'],['En classe, quelle source d’électricité utilise-t-on ?',['Des piles','La prise murale','Les deux'],'Piles seulement, jamais de prise murale.'],['Dans un circuit, les électrons partent de la borne...',['− de la pile','+ de la pile','de l’ampoule'],'Ils quittent le −, traversent l’ampoule et reviennent au +.']];
+ let i=0,sc=0;
+ function next(){box.innerHTML='';if(i>=Q.length){ctx.done(0);if(sc>=6)ctx.done(1);if(sc===Q.length)ctx.done(2);H('div',{class:'q'},'Score : '+sc+' / '+Q.length,box);btn('Recommencer',()=>{i=0;sc=0;next()},box,'pri');return}
+  const q=Q[i];H('div',{style:'color:var(--muted);font-weight:700'},'Question '+(i+1)+' sur '+Q.length,box);H('div',{class:'q'},q[0],box);
+  const o=H('div',{class:'opts'},'',box),fb=H('div',{},'',box);
+  shuffle(q[1].map((t,k)=>[t,k]),i+3).forEach(x=>{const b=btn(x[0],()=>{[...o.children].forEach(y=>{y.disabled=true});const ok=x[1]===0;if(ok)sc++;b.classList.add(ok?'right':'wrong');
+   fb.innerHTML='<p><b>'+(ok?'Bravo !':'Pas tout à fait.')+'</b> '+q[2]+'</p>';btn(i+1<Q.length?'Suivant':'Voir mon score',()=>{i++;next()},fb,'pri')},o)})}
+ next();ctx.status('Une seule bonne réponse par question.')}
+/* ---- Jeu : panne de courant ---- */
+function mountPanne(ctx){
+ const box=H('div',{class:'qbox'},'',ctx.box());
+ const OP=['Un fil est débranché','L’interrupteur est ouvert','Un isolant coupe le circuit','Un fil relie directement le + et le − (court-circuit)','La pile est vide','Rien n’est cassé : ça brille'];
+ const SC=[[0,'Un fil est débranché : la boucle est coupée.'],[1,'L’interrupteur est ouvert : il coupe la boucle.'],[2,'La gomme est un isolant : elle bloque les électrons.'],[3,'Le fil direct (court-circuit) laisse le courant sauter l’ampoule.'],[4,'La pile est vide : plus d’énergie pour faire circuler les électrons.'],[5,'Le circuit est fermé et tout est en bon état : l’ampoule brille.']];
+ function draw(k,host){const s=S('svg',{viewBox:'0 0 400 200',style:'width:100%;max-width:440px;background:var(--stage);border-radius:12px'},host);
+  const w=(d)=>S('path',{d:d,fill:'none',stroke:'#e63946','stroke-width':5,'stroke-linecap':'round'},s);
+  const lit=k===5;
+  S('rect',{x:30,y:84,width:40,height:32,rx:5,fill:k===4?'#9aa5b1':'#343a46'},s);S('rect',{x:52,y:84,width:18,height:32,rx:5,fill:k===4?'#c9ced6':'#e0a526'},s);
+  S('text',{x:40,y:76,'font-size':16,'font-weight':800,fill:'var(--ink)'},s).textContent='−';S('text',{x:60,y:76,'font-size':16,'font-weight':800,fill:'var(--ink)'},s).textContent='+';
+  S('circle',{cx:340,cy:100,r:26,fill:lit?'#ffe066':'#dfe9f3',stroke:'#9aa5b1','stroke-width':3},s);
+  if(lit)S('circle',{cx:340,cy:100,r:44,fill:'#ffe066',opacity:.35},s);
+  w('M50 84 V40 H'+(k===0?'150':k===1?'150':k===2?'150':'340')+(k===3?'':''));
+  if(k===0){w('M190 40 H340 V74');S('circle',{cx:150,cy:40,r:6,fill:'none',stroke:'#e63946','stroke-width':3},s);S('circle',{cx:190,cy:40,r:6,fill:'none',stroke:'#e63946','stroke-width':3},s)}
+  else if(k===1){w('M190 40 H340 V74');S('circle',{cx:150,cy:40,r:5,fill:'#e0b43c'},s);S('circle',{cx:190,cy:40,r:5,fill:'#e0b43c'},s);S('path',{d:'M150 40 L186 18',stroke:'#7c8794','stroke-width':5,'stroke-linecap':'round'},s)}
+  else if(k===2){S('rect',{x:150,y:28,width:40,height:24,rx:5,fill:'#f08fa5'},s);S('rect',{x:150,y:28,width:12,height:24,rx:5,fill:'#6c8ebf'},s);w('M190 40 H340 V74')}
+  else w('M150 40 H340 V74');
+  if(k===3){w('M20 84 C0 84 0 116 20 116');S('path',{d:'M50 84 C20 70 20 130 50 116',fill:'none',stroke:'#e63946','stroke-width':5},s)}
+  w('M340 126 V160 H50 V116');
+  S('text',{x:340,y:190,'text-anchor':'middle','font-size':12,fill:'var(--muted)'},s).textContent='ampoule';S('text',{x:50,y:190,'text-anchor':'middle','font-size':12,fill:'var(--muted)'},s).textContent='pile'}
+ const order=shuffle(SC.map((_,i)=>i),+new Date()%997);let i=0,sc=0;
+ function next(){box.innerHTML='';
+  if(i>=order.length){ctx.done(0);if(sc>=5)ctx.done(1);if(sc===order.length)ctx.done(2);H('div',{class:'q'},'Score : '+sc+' / '+order.length,box);btn('Rejouer',()=>{i=0;sc=0;next()},box,'pri');return}
+  const c=SC[order[i]];H('div',{style:'color:var(--muted);font-weight:700'},'Circuit '+(i+1)+' sur '+order.length,box);
+  H('div',{class:'q'},'Que se passe-t-il dans ce circuit ?',box);draw(c[0],box);
+  const o=H('div',{class:'opts'},'',box),fb=H('div',{},'',box);
+  shuffle(OP.map((t,k)=>[t,k]),i+5).forEach(x=>{const b=btn(x[0],()=>{[...o.children].forEach(y=>y.disabled=true);const ok=x[1]===c[0];if(ok)sc++;b.classList.add(ok?'right':'wrong');
+   fb.innerHTML='<p><b>'+(ok?'Bravo !':'Pas tout à fait.')+'</b> '+c[1]+'</p>';btn(i+1<order.length?'Suivant':'Voir mon score',()=>{i++;next()},fb,'pri')},o)})}
+ next();ctx.status('Observe le circuit et trouve la cause de la panne.')}
+/* ---- Jeu : course aux électrons ---- */
+function mountCourse(ctx){
+ const svg=ctx.svg();S('path',{d:'M0 250 H800',stroke:'var(--line)','stroke-width':40,opacity:.5},svg);
+ const tx=S('text',{x:400,y:250,'text-anchor':'middle',class:'hint'},svg);tx.textContent='Clique sur les électrons (−) en 30 secondes. Évite les protons (+) !';
+ const lay=S('g',{},svg),hud=S('text',{x:16,y:32,class:'lbl','font-size':22},svg);hud.style.fontSize='22px';
+ let run=false,time=0,score=0,sp=0,list=[];const r=rng(21);
+ const start=btn('Jouer',()=>{list.forEach(o=>o.g.remove());list=[];run=true;time=30;score=0;sp=0;tx.style.display='none';start.disabled=true},ctx.ctrl,'pri');
+ ctx.loop(dt=>{
+  if(run){time-=dt;sp+=dt;
+   while(sp>0.6){sp-=0.6;const e=r()<.72,g=S('g',{},lay),y=70+r()*360;S('circle',{r:24,fill:e?'#2b6cff':'#e5383b'},g);
+    const t=S('text',{'text-anchor':'middle','dominant-baseline':'central','font-size':30,'font-weight':800,fill:'#fff'},g);t.textContent=e?'−':'+';
+    const o={g:g,e:e,x:-30,y:y,v:120+r()*140,ph:r()*6,y0:y};list.push(o);g.style.cursor='pointer';
+    g.addEventListener('pointerdown',ev=>{ev.preventDefault();if(!run||o.dead)return;o.dead=true;score+=e?1:-2;if(score<0)score=0;g.remove()})}
+   if(time<=0){run=false;start.disabled=false;start.textContent='Rejouer';if(score>=10)ctx.done(0);if(score>=20)ctx.done(1);if(score>=28)ctx.done(2);
+    tx.textContent='Fini ! Score : '+score;tx.style.display='';list.forEach(o=>o.g.remove());list=[]}}
+  list=list.filter(o=>{if(o.dead)return false;o.x+=o.v*dt;o.y=o.y0+Math.sin(o.x/60+o.ph)*30;place(o.g,o.x,o.y);if(o.x>830){o.g.remove();return false}return true});
+  hud.textContent=run?'Temps : '+Math.ceil(time)+' s   Score : '+score:'';
+  ctx.status(run?'Attrape les électrons −. Un proton + te fait perdre 2 points.':'Appuie sur Jouer.')})}
+/* ---- Jeu : associe les paires ---- */
+function mountPaires(ctx){
+ const box=H('div',{class:'qbox'},'',ctx.box());
+ const P=[['Électron','Particule négative qui se déplace'],['Conducteur','Laisse passer le courant'],['Isolant','Bloque le courant'],['Circuit ouvert','Le courant ne passe pas'],['Circuit fermé','Boucle complète : ça brille'],['Interrupteur','Ouvre ou ferme le circuit'],['Pile','Source du courant (jamais la prise murale)'],['Statique','Charges qui restent en place']];
+ let cards,sel=null,tries=0,found=0,grid,info;
+ function init(){box.innerHTML='';tries=0;found=0;sel=null;info=H('div',{style:'font-weight:700'},'Coups : 0',box);
+  grid=H('div',{style:'display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px'},'',box);
+  cards=shuffle(P.flatMap((p,i)=>[{i:i,t:p[0],k:'t'},{i:i,t:p[1],k:'d'}]),+new Date()%991);
+  cards.forEach(c=>{c.b=btn(c.t,()=>pick(c),grid);c.b.style.minHeight='64px';c.b.style.justifyContent='center';c.b.style.textAlign='center';if(c.k==='t')c.b.style.fontWeight='800'})}
+ function pick(c){if(c.ok)return;if(!sel){sel=c;c.b.classList.add('on');return}
+  if(sel===c){c.b.classList.remove('on');sel=null;return}
+  tries++;info.textContent='Coups : '+tries;const a=sel;sel=null;
+  if(a.i===c.i&&a.k!==c.k){a.ok=c.ok=true;[a,c].forEach(x=>{x.b.classList.remove('on');x.b.classList.add('right');x.b.disabled=true});found++;
+   if(found===P.length){info.textContent='Bravo ! Terminé en '+tries+' coups.';ctx.done(0);if(tries<=14)ctx.done(1);if(tries<=10)ctx.done(2);btn('Rejouer',init,box,'pri')}}
+  else{a.b.classList.remove('on');[a,c].forEach(x=>x.b.classList.add('wrong'));setTimeout(()=>[a,c].forEach(x=>x.b.classList.remove('wrong')),600)}}
+ init();ctx.status('Relie chaque mot à sa définition : clique sur deux cartes.')}
+/* ---- Contenu et pages ---- */
+const T={
+ballon:'<rect x="76" y="6" width="40" height="60" fill="#d9d2c7"/><ellipse cx="62" cy="34" rx="18" ry="24" fill="#e63946"/><path d="M8 20 28 12 36 30 62 30" fill="none"/><rect x="6" y="14" width="22" height="44" rx="4" fill="#c8553d"/>',
+papiers:'<rect x="14" y="14" width="92" height="12" rx="3" fill="#8fd3e8" stroke="#3d93ad" stroke-width="2"/><rect x="30" y="44" width="12" height="8" fill="#ffe08a" transform="rotate(-20 36 48)"/><rect x="58" y="38" width="12" height="8" fill="#ffb3c1" transform="rotate(15 64 42)"/><rect x="84" y="52" width="12" height="8" fill="#b8f0d0"/>',
+eau:'<rect x="56" y="6" width="20" height="10" fill="#9aa5b1"/><path d="M66 16 Q66 40 84 62" stroke="#3ea6ff" stroke-width="4" fill="none"/><circle cx="102" cy="48" r="14" fill="#e63946"/>',
+ampoule:'<circle cx="60" cy="26" r="18" fill="#ffe066" stroke="#9aa5b1" stroke-width="3"/><rect x="52" y="42" width="16" height="10" fill="#aab3bd"/><rect x="26" y="60" width="68" height="9" rx="3" fill="#343a46"/><path d="M26 64 14 64 14 30 42 30" fill="none" stroke="#e63946" stroke-width="3"/>',
+interrupteur:'<rect x="14" y="14" width="92" height="46" rx="4" fill="#c8a165"/><circle cx="32" cy="38" r="5" fill="#e0b43c"/><circle cx="88" cy="38" r="5" fill="#e0b43c"/><path d="M32 38 74 20" stroke="#7c8794" stroke-width="4" stroke-linecap="round"/>',
+conducteur:'<circle cx="38" cy="36" r="16" fill="#e0b43c" stroke="#a9831f" stroke-width="2"/><rect x="66" y="26" width="38" height="20" rx="4" fill="#f08fa5"/>',
+charges:'<circle cx="30" cy="36" r="18" fill="#e5383b"/><circle cx="90" cy="36" r="18" fill="#2b6cff"/><path d="M52 36H68" stroke="#14213d" stroke-width="4"/>',
+eclair:'<path d="M20 28a14 14 0 0 1 26-6 16 16 0 0 1 36 4 12 12 0 0 1 14 12H20Z" fill="#7b8499"/><path d="M64 40 52 56h10L56 70 78 50H66l8-10Z" fill="#ffd60a"/>',
+tri:'<rect x="10" y="22" width="44" height="40" rx="6" fill="#ffb28a"/><rect x="66" y="22" width="44" height="40" rx="6" fill="#8fb4ff"/><rect x="38" y="6" width="44" height="22" rx="4" fill="#fff" stroke="#9aa5b1"/>',
+panne:'<rect x="14" y="14" width="92" height="44" rx="6" fill="none" stroke="#e63946" stroke-width="4"/><circle cx="96" cy="36" r="12" fill="#dfe9f3" stroke="#9aa5b1" stroke-width="3"/><path d="M46 14h22" stroke="var(--stage)" stroke-width="8"/>',
+course:'<circle cx="30" cy="26" r="14" fill="#2b6cff"/><circle cx="70" cy="46" r="14" fill="#2b6cff"/><circle cx="96" cy="22" r="14" fill="#e5383b"/>',
+paires:'<rect x="12" y="14" width="42" height="44" rx="6" fill="#fff" stroke="#b39bff" stroke-width="3"/><rect x="66" y="14" width="42" height="44" rx="6" fill="#fff" stroke="#b39bff" stroke-width="3"/><path d="M54 36h12" stroke="#b39bff" stroke-width="4"/>',
+quiz:'<circle cx="60" cy="36" r="28" fill="#b39bff"/><text x="60" y="48" text-anchor="middle" font-size="38" font-weight="800" fill="#fff">?</text>'};
+EXPS.push(
+{id:'ballon',kind:'stat',num:'Centre 1',title:'Le ballon qui colle',sub:'Frotte un ballon sur un pull et colle-le au mur.',mount:mountBallon,
+ mat:['1 ballon gonflé','1 pull en laine','1 mur'],
+ steps:['Frotte le ballon sur le pull en le déplaçant de haut en bas.','Observe les charges : lesquelles passent du pull au ballon ?','Approche le ballon du mur, sans le toucher.','Lâche le ballon près du mur.'],
+ obs:'Que se passe-t-il quand tu lâches le ballon près du mur ? Pourquoi reste-t-il collé ?',
+ why:'Le frottement arrache des électrons à la laine. Le ballon en gagne : il devient négatif et le pull devient positif. Dans le mur neutre, les électrons sont repoussés par le ballon et les charges positives restent proches. Le ballon est attiré et reste collé.',
+ keep:['Frotter déplace des électrons.','Trop d’électrons : négatif. Pas assez : positif.','Un objet chargé attire un objet neutre.']},
+{id:'papiers',kind:'stat',num:'Centre 2',title:'La danse des papiers',sub:'Une règle frottée fait sauter des petits papiers.',mount:mountPapiers,
+ mat:['1 règle en plastique','1 morceau de laine','Des petits bouts de papier'],
+ steps:['Approche la règle des papiers sans la frotter.','Frotte la règle sur la laine plusieurs fois.','Approche la règle des papiers sans les toucher.','Touche des papiers avec la règle.'],
+ obs:'Que font les papiers ? Que se passe-t-il quand ils touchent la règle ?',
+ why:'La règle frottée est chargée. Elle attire les papiers neutres. Quand un papier touche la règle, il prend la même charge qu’elle. Deux charges semblables se repoussent : le papier saute.',
+ keep:['Un objet chargé attire les objets neutres.','Deux charges de même signe se repoussent.']},
+{id:'eau',kind:'stat',num:'Centre 3',title:'Le filet d’eau qui se plie',sub:'Un ballon chargé courbe un filet d’eau, sans le toucher.',mount:mountEau,
+ mat:['1 robinet (mince filet d’eau)','1 ballon gonflé','1 pull en laine'],
+ steps:['Ouvre le robinet pour un mince filet.','Approche le ballon sans l’avoir frotté.','Frotte le ballon sur le pull.','Approche-le du filet sans le toucher.'],
+ obs:'Que fait le filet d’eau ? Quelle force agit sans aucun contact ?',
+ why:'L’eau est neutre, mais ses charges se déplacent un peu quand le ballon chargé approche. Le filet est attiré et se plie vers le ballon.',
+ keep:['L’électricité statique agit à distance.','Un objet chargé attire l’eau.']},
+{id:'ampoule',kind:'dyn',num:'Centre 4',title:'Allume l’ampoule',sub:'Relie une pile et une ampoule avec des fils.',mount:c=>mountCircuit(c,{k:'4'}),
+ mat:['1 pile','1 ampoule','2 ou 3 fils'],safe:true,
+ steps:['Accroche un fil au + de la pile.','Relie ce fil au côté ou au bout de l’ampoule.','Relie l’autre contact de l’ampoule au − de la pile.','Essaie d’autres branchements : lesquels allument ?'],
+ obs:'Quels branchements font briller l’ampoule ? Pourquoi pas les autres ?',
+ why:'L’ampoule brille seulement si le circuit est fermé : pile, ampoule et fils forment une boucle. Les électrons partent du −, traversent l’ampoule et reviennent au +. Si un fil se débranche, la boucle est coupée.',
+ keep:['Un circuit = source + charge + conducteurs.','Il doit être fermé pour que le courant passe.']},
+{id:'interrupteur',kind:'dyn',num:'Centre 5',title:'Fabrique un interrupteur',sub:'Un trombone et deux attaches ouvrent et ferment le circuit.',mount:c=>mountCircuit(c,{k:'5',switch:true}),
+ mat:['1 carton','1 trombone','2 attaches parisiennes','1 pile, 1 ampoule, des fils'],safe:true,
+ steps:['Construis l’interrupteur avec les 3 boutons.','Relie le + de la pile à une attache.','Relie l’autre attache à l’ampoule, puis l’ampoule au −.','Clique sur le trombone pour ouvrir et fermer.'],
+ obs:'Que se passe-t-il quand le trombone touche les deux attaches ? Et quand il n’en touche qu’une ?',
+ why:'Quand le trombone touche les deux attaches, le circuit est fermé : le courant passe. Quand il s’écarte, le circuit est ouvert et l’ampoule s’éteint.',
+ keep:['Un interrupteur ouvre ou ferme le circuit.','Circuit ouvert : pas de courant.']},
+{id:'conducteur',kind:'dyn',num:'Centre 6',title:'Conducteur ou isolant ?',sub:'Teste des objets dans un circuit.',mount:mountConducteur,
+ mat:['1 pile, 1 ampoule, des fils','2 pinces','Des objets à tester'],safe:true,
+ steps:['Choisis un objet.','Prédis : conducteur ou isolant ?','Regarde si l’ampoule s’allume.','Compare avec ta prédiction et classe l’objet.'],
+ obs:'Quels objets laissent passer le courant ? Qu’ont-ils en commun ?',
+ why:'Les conducteurs laissent passer les électrons : les métaux (pièce, clé, aluminium, clou, trombone). La mine de crayon conduit un peu. Les isolants les bloquent : gomme, bois, verre, plastique, tissu, caoutchouc.',
+ keep:['Les métaux sont conducteurs.','Bois, verre, plastique et tissu sont isolants.']},
+{id:'charges',kind:'bon',num:'Bonus',title:'Attire ou repousse ?',sub:'Teste toutes les paires de charges.',mount:mountCharges,
+ mat:['2 boules à charger'],steps:['Mets la boule 1 en + et la boule 2 en −.','Rapproche-les, puis change les signes.','Essaie avec une boule neutre.'],
+ obs:'Quelle règle trouves-tu pour les charges ?',why:'Des charges de signes opposés s’attirent. Des charges de même signe se repoussent. Un objet neutre ne subit aucune force de ce type avec une charge seule.',
+ keep:['Contraires : elles s’attirent.','Semblables : elles se repoussent.']},
+{id:'eclair',kind:'bon',num:'Bonus',title:'L’éclair',sub:'Charge un nuage jusqu’à l’éclair.',mount:mountEclair,
+ mat:['1 nuage d’orage'],steps:['Augmente le mouvement dans le nuage.','Regarde la charge monter.','Ajoute un paratonnerre et recommence.'],
+ obs:'Pourquoi l’éclair se produit-il ? Que change le paratonnerre ?',why:'Dans un nuage d’orage, les gouttes et les glaçons se frottent et se chargent. Quand la charge devient trop grande, elle saute vers le sol : c’est un éclair. Un paratonnerre guide la décharge vers le sol sans danger.',
+ keep:['Un éclair est une immense étincelle d’électricité statique.']},
+{id:'tri',kind:'bon',num:'Jeu',title:'Statique ou dynamique ?',sub:'Classe 10 situations de la vie.',mount:mountTri,
+ mat:[],steps:['Lis la situation.','Choisis statique ou dynamique.'],obs:'Quelle situation t’a surpris(e) ?',why:'Statique : les charges restent en place puis se déchargent. Dynamique : les électrons circulent dans un circuit fermé.',keep:['Statique = charges immobiles.','Dynamique = courant qui circule.']},
+{id:'quiz',kind:'bon',num:'Jeu',title:'Quiz de l’électricité',sub:'8 questions pour tester tes connaissances.',mount:mountQuiz,
+ mat:[],steps:['Réponds aux 8 questions.','Lis l’explication après chaque réponse.'],obs:'Quelle notion veux-tu revoir ?',why:'Reviens aux centres 1 à 6 pour essayer à nouveau les expériences qui t’ont posé problème.',keep:['Électrons : négatifs. Circuit fermé : ça brille.']});
+EXPS.push(
+{id:'panne',kind:'bon',num:'Jeu',title:'Panne de courant',sub:'Trouve pourquoi l\u2019ampoule ne s\u2019allume pas.',mount:mountPanne,mat:[],steps:['Observe le circuit.','Choisis la cause de la panne.'],why:'Une panne vient presque toujours d\u2019un circuit ouvert : fil d\u00e9branch\u00e9, interrupteur ouvert ou isolant. Un court-circuit et une pile vide emp\u00eachent aussi l\u2019ampoule de briller.',keep:['Pour briller, le circuit doit \u00eatre ferm\u00e9 et la pile en bon \u00e9tat.']},
+{id:'course',kind:'bon',num:'Jeu',title:'Course aux \u00e9lectrons',sub:'Attrape les \u00e9lectrons en 30 secondes.',mount:mountCourse,mat:[],steps:['Appuie sur Jouer.','Clique sur les \u00e9lectrons \u2212.','Ne touche pas les protons +.'],why:'Les \u00e9lectrons portent une charge n\u00e9gative et se d\u00e9placent dans les fils. Les protons sont positifs et restent dans l\u2019atome.',keep:['\u00c9lectron = charge n\u00e9gative qui se d\u00e9place.']},
+{id:'paires',kind:'bon',num:'Jeu',title:'Associe les paires',sub:'Relie chaque mot \u00e0 sa d\u00e9finition.',mount:mountPaires,mat:[],steps:['Clique sur deux cartes.','Trouve les 8 paires en peu de coups.'],why:'Ce jeu r\u00e9vise le vocabulaire du circuit : conducteur, isolant, circuit ouvert ou ferm\u00e9, interrupteur, pile.',keep:['Un bon vocabulaire aide \u00e0 expliquer ses r\u00e9sultats.']});
+const app=document.getElementById('app'),KIND={stat:['Électricité statique','k-stat'],dyn:['Électricité dynamique','k-dyn'],bon:['Bonus','k-bon']};
+const MS={
+ballon:['Charge le ballon au maximum (10 électrons en trop)','Fais coller le ballon au mur','Active « Différence » pour voir seulement les charges en trop'],
+papiers:['Charge la règle presque au maximum','Fais lever 5 papiers en même temps','Fais repousser un papier qui a touché la règle'],
+eau:['Charge le ballon au maximum','Plie bien le filet d’eau vers le ballon','Ferme le robinet'],
+ampoule:['Allume l’ampoule','Éteins-la en débranchant un fil','Provoque un court-circuit (+ et − reliés directement)'],
+interrupteur:['Construis l’interrupteur','Allume l’ampoule avec l’interrupteur fermé','Éteins l’ampoule en ouvrant l’interrupteur'],
+conducteur:['Teste 3 objets','Teste les 12 objets','Trouve l’objet qui fait briller faiblement l’ampoule'],
+charges:['Fais s’attirer les boules','Fais se repousser les boules','Essaie avec une boule neutre'],
+eclair:['Déclenche un éclair','Déclenche un éclair avec le paratonnerre','Déclenche 3 éclairs'],
+tri:['Termine les 10 situations','Obtiens au moins 8 sur 10','Obtiens 10 sur 10'],
+quiz:['Termine le quiz','Obtiens au moins 6 sur 8','Obtiens 8 sur 8']};
+const mget=id=>{const v=store.get('labo-m-'+id,'');return[0,1,2].map(i=>v[i]==='1'?1:0)};
+const mset=(id,m)=>store.set('labo-m-'+id,m.join(''));
+const stars=id=>mget(id).slice(0,(MS[id]||[]).length).filter(Boolean).length;
+const isDone=id=>(MS[id]||[]).length>0&&stars(id)===MS[id].length;
+Object.assign(MS,{panne:['Termine les 6 circuits','Trouve au moins 5 pannes','Trouve les 6 pannes'],course:['Marque au moins 10 points','Marque au moins 20 points','Marque au moins 28 points'],paires:['Trouve les 8 paires','Termine en 14 coups ou moins','Termine en 10 coups ou moins']});
+function home(){
+ const tot=EXPS.reduce((n,e)=>n+MS[e.id].length,0),got=EXPS.reduce((n,e)=>n+stars(e.id),0);
+ app.innerHTML='<h1>Labo de l\u2019\u00e9lectricit\u00e9</h1><p class="lead">Choisis un centre, manipule et r\u00e9ussis les missions. Tout se fait sur ton Chromebook, avec la souris ou le doigt.</p><p style="font:600 22px var(--fd);margin:14px 0 0">\u2605 '+got+' / '+tot+' missions r\u00e9ussies</p>';
+ const intro={stat:'Les charges restent en place. Frotte, approche, observe.',dyn:'Les électrons circulent dans un circuit fermé.',bon:'Pour aller plus loin.'};
+ ['stat','dyn','bon'].forEach(k=>{H('h2',{},KIND[k][0],app);H('p',{class:'sect-note'},intro[k],app);const g=H('div',{class:'grid'},'',app);
+  EXPS.filter(e=>e.kind===k).forEach(e=>{const a=H('a',{class:'card '+KIND[k][1],href:'#'+e.id},'<div class="th"><svg viewBox="0 0 120 72" aria-hidden="true">'+T[e.id]+'</svg>'+(stars(e.id)?'<span class="done">\u2605 '+stars(e.id)+'/'+MS[e.id].length+'</span>':'')+'</div><div class="body"><div class="num">'+e.num+'</div><h3>'+e.title+'</h3><p>'+e.sub+'</p></div>',g)})});
+ H('div',{class:'safety'},'<b>Sécurité.</b> Dans la vraie vie, on fait les circuits avec des piles seulement, jamais avec une prise murale.',app)}
+function page(e){
+ const i=EXPS.indexOf(e),k=KIND[e.kind];
+ app.innerHTML='';const sec=H('section',{class:'exp '+k[1]},'',app);
+ H('div',{class:'crumb'},'<a href="#accueil">← Tous les centres</a><span class="tag">'+e.num+' · '+k[0]+'</span>',sec);
+ H('h1',{},e.title,sec);H('p',{class:'lead'},e.sub,sec);
+ const gr=H('div',{class:'expgrid'},'',sec),left=H('div',{},'',gr),stage=H('div',{class:'stage'},'',left),ctrl=H('div',{class:'ctrls'},'',left),st=H('div',{class:'status'},'',left);
+ const ctx=makeCtx(stage,ctrl,st,e.title);e.mount(ctx);
+ const p=H('aside',{class:'panel'},'',gr);
+ if(e.mat.length)H('div',{},'<h3>Matériel</h3><ul>'+e.mat.map(x=>'<li>'+x+'</li>').join('')+'</ul>',p);
+ if(e.safe)H('div',{class:'safe'},'Piles seulement, jamais de prise murale.',p);
+ H('div',{},'<h3>À faire</h3><ol>'+e.steps.map(x=>'<li>'+x+'</li>').join('')+'</ol>',p);
+
+ const ms=MS[e.id]||[],mw=H('div',{},'<h3>Missions</h3>',p),ml=H('ul',{style:'list-style:none;padding:0;display:grid;gap:6px'},'',mw),lis=[];
+ ms.forEach(t=>{lis.push(H('li',{style:'display:flex;gap:8px'},'<span style="font-size:22px;line-height:1.1">☆</span><span>'+t+'</span>',ml))});
+ const cnt=H('div',{style:'font-weight:700;color:var(--ck);margin-top:6px'},'',mw);
+ function paint(){const m=mget(e.id);lis.forEach((li,i)=>{li.firstChild.textContent=m[i]?'★':'☆';li.style.fontWeight=m[i]?'700':'400';li.style.color=m[i]?'var(--ok)':'var(--ink)'});const n=m.slice(0,ms.length).filter(Boolean).length;cnt.textContent=n===ms.length?'Bravo, toutes les missions sont réussies !':n+' / '+ms.length+' missions réussies'}
+ ctx.done=i=>{const m=mget(e.id);if(!m[i]){m[i]=1;mset(e.id,m);paint()}};paint();
+ H('details',{},'<summary style="cursor:pointer;font-weight:700;color:var(--ck);min-height:32px">Pour comprendre</summary><h3>Ce qui s’est passé</h3><p>'+e.why+'</p><h3>À retenir</h3><ul>'+e.keep.map(x=>'<li>'+x+'</li>').join('')+'</ul>',p);
+ const nv=H('div',{class:'nav'},'',sec),pr=EXPS[i-1],nx=EXPS[i+1];
+ if(pr)H('a',{class:'btn',href:'#'+pr.id},'← '+pr.title,nv);else H('span',{},'',nv);
+ if(nx)H('a',{class:'btn pri',href:'#'+nx.id},nx.title+' →',nv)}
+function route(){cleanup();const e=EXPS.find(x=>x.id===location.hash.slice(1));try{e?page(e):home()}catch(err){app.innerHTML='<p>Erreur : '+err.message+'</p>';console.error(err)}window.scrollTo(0,0)}
+window.addEventListener('hashchange',route);
+const tb=document.getElementById('themeBtn'),root=document.documentElement;
+const th=store.get('labo-theme','');if(th)root.setAttribute('data-theme',th);
+tb.addEventListener('click',()=>{const d=root.getAttribute('data-theme')==='dark'||(!root.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme:dark)').matches);const v=d?'light':'dark';root.setAttribute('data-theme',v);store.set('labo-theme',v)});
+route();
+})();
+</script>
+</body>
+</html>
